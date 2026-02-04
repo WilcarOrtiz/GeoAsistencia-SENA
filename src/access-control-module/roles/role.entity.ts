@@ -8,14 +8,20 @@ import {
 } from 'typeorm';
 import { Permission } from '../permissions/permission.entity';
 import { User } from 'src/user/entities/user.entity';
+import { ValidRole } from 'src/common/constants/valid-role.enum';
 
 @Entity('ROLES')
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 30, unique: true, nullable: false })
-  name: string;
+  @Column({
+    type: 'enum',
+    enum: ValidRole,
+    unique: true,
+    nullable: false,
+  })
+  name: ValidRole;
 
   @Column({ length: 50, unique: true, nullable: false })
   description: string;

@@ -1,4 +1,11 @@
-import { Body, Controller, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 
@@ -14,5 +21,10 @@ export class RoleController {
   @Patch('remove-permissions')
   removePermissions(@Body() dto: UpdateRolePermissions) {
     return this.roleService.removePermissions(dto);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.roleService.findRoles(id);
   }
 }

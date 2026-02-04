@@ -7,6 +7,7 @@ import { AccessControlModuleModule } from './access-control-module/access-contro
 import { SemesterModule } from './semester/semester.module';
 import { UserModule } from './user/user.module';
 import { SupabaseModule } from './supabase/supabase.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,8 @@ import { SupabaseModule } from './supabase/supabase.module';
     SemesterModule,
     UserModule,
     SupabaseModule,
+    AuthModule,
   ],
+  providers: [],
 })
 export class AppModule {}

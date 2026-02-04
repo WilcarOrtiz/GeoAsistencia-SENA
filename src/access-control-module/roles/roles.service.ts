@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { IRoleSystemCreate } from './role-system.interface';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class RolesService {
@@ -79,12 +80,27 @@ export class RolesService {
     return { removed: permissionIds.length };
   }
 
-  async findRoles(ids: string[]) {
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+
+    const roles = await this.roleRepo.find({
+      take: limit,
+      skip: offset,
+      relations: {
+        permissions: true,
+      },
+    });
+    return roles;
+  }
+
+  async findRoles(ids: string[] | string) {
+    const uniqueIds = [...new Set(ids)];
+
     const roles = await this.roleRepo.findBy({
-      id: In(ids),
+      id: In(uniqueIds),
     });
 
-    if (roles.length !== ids.length)
+    if (roles.length !== uniqueIds.length)
       throw new NotFoundException('Uno o más roles no fueron encontrados');
 
     return roles;

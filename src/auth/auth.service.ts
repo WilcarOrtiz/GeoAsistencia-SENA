@@ -6,7 +6,7 @@ import {
 import { SupabaseAdminService } from 'src/supabase/supabase-admin/supabase-admin.service';
 
 @Injectable()
-export class UserAuthService {
+export class AuthService {
   constructor(private readonly supabaseAdmin: SupabaseAdminService) {}
 
   async createUserCredentials(email: string, id: string) {
@@ -37,8 +37,4 @@ export class UserAuthService {
   async deleteUserCredentials(id: string) {
     await this.supabaseAdmin.client.auth.admin.deleteUser(id);
   }
-
-  //
-  //TODO:  EXCEPCIÓN: Si es Admin o SuperAdmin, no validamos teléfono, tengo que crear un guard para validar que es el telefono*/
-  checkDevice() {}
 }

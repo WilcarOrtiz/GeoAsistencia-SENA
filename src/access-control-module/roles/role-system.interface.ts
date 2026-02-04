@@ -1,7 +1,6 @@
-type roleValideName = 'super_admin' | 'admin' | 'docente' | 'estudiante';
-
+import { ValidRole } from 'src/common/constants/valid-role.enum';
 export interface IRoleSystemCreate {
-  name: roleValideName;
+  name: ValidRole;
   description: string;
   permissions: string[];
 }

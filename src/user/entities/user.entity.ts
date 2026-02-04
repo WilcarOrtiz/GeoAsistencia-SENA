@@ -7,6 +7,8 @@ import {
   Entity,
   Index,
   PrimaryColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 
 @Entity('USERS')
@@ -22,13 +24,13 @@ export class User {
   first_name: string;
 
   @Column({ type: 'varchar', nullable: true, length: 30 })
-  middle_name: string;
+  middle_name?: string;
 
   @Column({ type: 'varchar', nullable: false, length: 30 })
   last_name: string;
 
   @Column({ type: 'varchar', nullable: true, length: 30 })
-  second_last_name: string;
+  second_last_name?: string;
 
   @Column({ type: 'uuid', nullable: true })
   uuid_phone: string;
@@ -54,6 +56,27 @@ export class User {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  normalizeNames() {
+    this.first_name = this.toTitleCase(this.first_name);
+
+    if (this.middle_name) this.middle_name = this.toTitleCase(this.middle_name);
+
+    this.last_name = this.toTitleCase(this.last_name);
+
+    if (this.second_last_name)
+      this.second_last_name = this.toTitleCase(this.second_last_name);
+  }
+
+  private toTitleCase(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
 }
 
 //TODO: EN GEMINI TENGO INFORMACION RESPECTO A LA VALIDACION DE DISPOSITIVO UNICO.

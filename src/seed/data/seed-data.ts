@@ -1,5 +1,6 @@
 import { IPermissionSystemCreate } from 'src/access-control-module/permissions/permission-system.interface';
 import { IRoleSystemCreate } from 'src/access-control-module/roles/role-system.interface';
+import { ValidRole } from 'src/common/constants/valid-role.enum';
 
 interface SeedData {
   permissions: IPermissionSystemCreate[];
@@ -35,7 +36,7 @@ export const initialData: SeedData = {
 
   roles: [
     {
-      name: 'admin',
+      name: ValidRole.ADMIN,
       description: 'Administrador',
       permissions: [
         'registrar_usuario',
@@ -47,7 +48,7 @@ export const initialData: SeedData = {
       ],
     },
     {
-      name: 'docente',
+      name: ValidRole.DOCENTE,
       description: 'Docente',
       permissions: ['editar_asignatura', 'ver_metricas'],
     },
