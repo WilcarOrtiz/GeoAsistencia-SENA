@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Permission } from './permission.entity';
-import { IPermissionSystemCreate } from './permission-system.interface';
+import { Permission } from './entities/permission.entity';
+import { IPermissionSystemCreate } from './interface/permission-system.interface';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
@@ -30,6 +30,14 @@ export class PermissionsService {
     return await repo.find({
       where: { name: In(names) },
     });
+  }
+
+  async findOneByName(name: string, manager?: EntityManager) {
+    const repo = manager
+      ? manager.getRepository(Permission)
+      : this.permissionRepo;
+
+    return await repo.findOneBy({ name });
   }
 
   async deleteAllPermissions(manager?: EntityManager) {

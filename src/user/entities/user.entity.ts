@@ -1,4 +1,4 @@
-import { Role } from 'src/access-control-module/roles/role.entity';
+import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import {
   Column,
   CreateDateColumn,

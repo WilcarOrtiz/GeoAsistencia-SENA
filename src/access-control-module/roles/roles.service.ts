@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
-import { Role } from './role.entity';
+import { Role } from './entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
-import { IRoleSystemCreate } from './role-system.interface';
+import { IRoleSystemCreate } from './interface/role-system.interface';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
