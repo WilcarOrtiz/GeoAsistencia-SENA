@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: '1023456789' })
+  @ApiProperty({ example: '1066865142' })
   @IsNotEmpty()
   @IsNumberString(
     {},
@@ -27,24 +27,24 @@ export class CreateUserDto {
   @IsNotEmpty()
   first_name: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ example: 'Daniel', required: false })
   @IsOptional()
   middle_name?: string;
 
-  @ApiProperty({ example: 'Daniel' })
+  @ApiProperty({ example: 'Ortiz' })
   @IsNotEmpty()
   last_name: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ example: 'Colpas', required: false })
   @IsOptional()
   second_last_name?: string;
 
-  @ApiProperty({ example: 'Ortiz' })
+  @ApiProperty({ example: 'ortizcolpaswilcardaniel@gmail.com' })
   @IsNotEmpty()
   @IsEmail({}, { message: 'Correo electrónico no válido' })
   email: string;
 
-  @ApiProperty({ example: 'Colpas' })
+  @ApiProperty({ example: '' })
   @IsArray()
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un rol' })
   @IsUUID('4', { each: true, message: 'ID de rol no válido' })

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { SeedService } from './seed.service';
-import { PublicAccess } from 'src/auth/decorators/public.decorator';
+import { PublicAccess } from 'src/common/decorators/public.decorator';
 
 @Controller('seed')
 export class SeedController {

@@ -105,6 +105,16 @@ export class RolesService {
 
     return roles;
   }
+
+  // roles.service.ts
+  async findRolesWithPermissions(roleIds: string[]): Promise<Role[]> {
+    return await this.roleRepo.find({
+      where: {
+        id: In(roleIds),
+      },
+      relations: ['permissions'],
+    });
+  }
 }
 
 /*Acción,Recomendación de retorno

@@ -1,6 +1,21 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { UserModule } from 'src/user/user.module';
+import { JwksProvider } from './provider/supabase-jwks.provider';
+import { APP_GUARD } from '@nestjs/core';
+import { SupabaseAuthGuard } from './guard/supabase-auth.guard';
 
-@Module({})
+@Global()
+@Module({
+  imports: [UserModule],
+  providers: [
+    JwksProvider,
+    {
+      provide: APP_GUARD,
+      useClass: SupabaseAuthGuard,
+    },
+  ],
+  exports: [JwksProvider],
+})
 export class CommonModule {}
 
 /*{

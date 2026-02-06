@@ -53,7 +53,7 @@ export class PermissionsService {
       take: limit,
       skip: offset,
       relations: {
-        roles: true,
+        roles: false,
       },
     });
 

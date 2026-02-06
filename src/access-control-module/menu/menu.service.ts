@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Menu } from './entities/menu.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { IMenuSystemCreate } from './interface/menu-system.interface';
+import { NavigationItemDto } from 'src/user/dto/user-me-response.dto';
 
 @Injectable()
 export class MenuService {
@@ -50,5 +51,31 @@ export class MenuService {
     const repo = manager ? manager.getRepository(Menu) : this.menuRepository;
 
     await repo.createQueryBuilder().delete().from(Menu).execute();
+  }
+  async findMenusByPermissions(
+    permissionIds: string[],
+    manager?: EntityManager,
+  ): Promise<NavigationItemDto[]> {
+    const repo = manager ? manager.getRepository(Menu) : this.menuRepository;
+
+    const menus = await repo.find({
+      where: { permission: { id: In(permissionIds) } },
+      relations: ['children'],
+      order: { order_index: 'ASC' },
+    });
+    const rootMenus = menus.filter((menu) => !menu.parent_id);
+    return this.formatTree(rootMenus);
+  }
+
+  private formatTree(menus: Menu[]): NavigationItemDto[] {
+    return menus.map((menu) => ({
+      id: menu.id,
+      name: menu.name,
+      route: menu.route,
+      icon: menu.icon,
+      order_index: menu.order_index,
+      // Se llama a sí misma: si hay hijos los formatea, si no, devuelve []
+      children: menu.children ? this.formatTree(menu.children) : [],
+    }));
   }
 }
