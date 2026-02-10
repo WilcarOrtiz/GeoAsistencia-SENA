@@ -34,6 +34,30 @@ export class AuthService {
     return data.user.id;
   }
 
+  async deleteAllUserCredentials() {
+    const supabase = this.supabaseAdmin.client;
+
+    let page = 1;
+    const perPage = 1000;
+
+    while (true) {
+      const { data, error } = await supabase.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+
+      if (error) throw error;
+
+      if (!data.users.length) break;
+
+      await Promise.all(
+        data.users.map((user) => supabase.auth.admin.deleteUser(user.id)),
+      );
+
+      page++;
+    }
+  }
+
   async deleteUserCredentials(id: string) {
     await this.supabaseAdmin.client.auth.admin.deleteUser(id);
   }

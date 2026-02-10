@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayNotEmpty,
   IsArray,
-  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsNumberString,
@@ -49,9 +48,4 @@ export class CreateUserDto {
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un rol' })
   @IsUUID('4', { each: true, message: 'ID de rol no válido' })
   rolesID: string[];
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsBoolean()
-  is_active: boolean;
 }

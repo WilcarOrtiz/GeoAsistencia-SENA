@@ -1,6 +1,7 @@
-export interface CurrentUser {
+export interface ICurrentUser {
   authId: string;
   ID_user: string;
   email: string;
-  roleIds: string[];
+  roles: string[];
+  permissions: string[];
 }

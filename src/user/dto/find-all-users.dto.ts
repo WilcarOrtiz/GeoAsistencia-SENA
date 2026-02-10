@@ -1,16 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
-import { ValidRole } from 'src/common/constants/valid-role.enum';
+import { IsOptional } from 'class-validator';
+
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 export class FindAllUsersDto extends PaginationDto {
-  @ApiPropertyOptional({
-    enum: ValidRole,
-    example: ValidRole.ADMIN,
-  })
+  @ApiPropertyOptional({})
   @IsOptional()
-  @IsEnum(ValidRole, {
-    message: 'Rol no válido',
-  })
-  role?: ValidRole;
+  roleId?: string;
 }

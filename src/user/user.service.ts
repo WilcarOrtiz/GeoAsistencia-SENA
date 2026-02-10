@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolesService } from '../access-control-module/roles/roles.service';
 import { UpdateRolesUserDto } from './dto/update-roles-user.dto';
@@ -9,6 +13,9 @@ import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { UserMeResponseDto } from './dto/user-me-response.dto';
 import { MenuService } from '../access-control-module/menu/menu.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { isUUID } from 'class-validator';
+import { AccessCriteria } from 'src/common/decorators/get-access-criteria.decorator';
 
 @Injectable()
 export class UserService {
@@ -45,61 +52,65 @@ export class UserService {
     }
   }
 
-  async updateRoles(userId: string, updateRolesUserDto: UpdateRolesUserDto) {
+  async update(auth_id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepo.preload({
+      auth_id,
+      ...updateUserDto,
+    });
+
+    if (!user)
+      throw new NotFoundException(`Usuario con ${auth_id} no encontrado`);
+    return this.userRepo.save(user);
+  }
+
+  async updateRoles(id: string, updateRolesUserDto: UpdateRolesUserDto) {
     const user = await this.userRepo.findOne({
-      where: { auth_id: userId },
+      where: { auth_id: id },
       relations: ['roles'],
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const newRoles = await this.rolesService.findRoles(
       updateRolesUserDto.rolesID,
     );
-
     user.roles = newRoles;
     return await this.userRepo.save(user);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  async deactivate(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { auth_id: id },
+    });
 
-  async findAll(findAllUsersDto: FindAllUsersDto) {
-    const { limit = 10, offset = 0, role } = findAllUsersDto;
-
-    const query = this.userRepo
-      .createQueryBuilder('USERS')
-      .leftJoin('USERS.roles', 'ROLES')
-      .where('USERS.is_active = :active', { active: true });
-
-    if (role) {
-      query.andWhere('ROLES.name = :roleName', {
-        roleName: role.toLowerCase(),
-      });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
     }
 
-    const [users, total] = await query
-      .take(limit)
-      .skip(offset)
-      .getManyAndCount();
+    if (!user.is_active) {
+      throw new BadRequestException('El usuario ya está inactivo');
+    }
 
-    return {
-      data: users,
-      total,
-    };
+    user.is_active = false;
+    return this.userRepo.save(user);
   }
 
-  async findOneByAuthId(authId: string): Promise<User | null> {
-    return this.userRepo.findOne({
-      where: { auth_id: authId },
-      relations: ['roles'],
-    });
-  }
-
-  async getUserProfile(authId: string): Promise<UserMeResponseDto> {
+  async activate(id: string) {
     const user = await this.userRepo.findOne({
-      where: { auth_id: authId },
+      where: { auth_id: id },
+    });
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (user.is_active)
+      throw new BadRequestException('El usuario ya está activo');
+
+    user.is_active = true;
+    return this.userRepo.save(user);
+  }
+
+  async getUserProfile(id: string): Promise<UserMeResponseDto> {
+    const user = await this.userRepo.findOne({
+      where: { auth_id: id },
       relations: ['roles'],
     });
 
@@ -152,22 +163,78 @@ export class UserService {
       navigation: navigation,
     };
   }
+
+  async findOne(term: string, accessCriteria: AccessCriteria) {
+    const qb = this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles');
+
+    if (isUUID(term)) {
+      qb.where('user.auth_id = :auth_id', { auth_id: term });
+    } else {
+      qb.where('user.ID_user = :idUser', { idUser: term });
+    }
+
+    if (accessCriteria.is_active !== undefined) {
+      qb.andWhere('user.is_active = :isActive', {
+        isActive: accessCriteria.is_active,
+      });
+    }
+
+    const user = await qb.getOne();
+
+    if (!user)
+      throw new NotFoundException(
+        `Usuario con ${term} no encontrado o inaccesible`,
+      );
+
+    return user;
+  }
+
+  async findAll(
+    findAllUsersDto: FindAllUsersDto,
+    accessCriteria: AccessCriteria,
+  ) {
+    const { limit = 10, offset = 0, roleId } = findAllUsersDto;
+
+    const query = this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles');
+
+    if (accessCriteria.is_active !== undefined) {
+      query.andWhere('user.is_active = :isActive', {
+        isActive: accessCriteria.is_active,
+      });
+    }
+
+    if (roleId) query.andWhere('roles.id = :roleId', { roleId });
+
+    const [users, total] = await query
+      .take(limit)
+      .skip(offset)
+      .getManyAndCount();
+
+    return { data: users, total };
+  }
+
+  async validateActiveUserByAuthId(authId: string) {
+    const user = await this.userRepo.findOne({
+      where: {
+        auth_id: authId,
+        is_active: true,
+      },
+      relations: {
+        roles: {
+          permissions: true,
+        },
+      },
+    });
+
+    return user;
+  }
+
+  async deleteAllUser(manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(User) : this.userRepo;
+    return await repo.createQueryBuilder().delete().where({}).execute();
+  }
 }
-
-/*✔️ Pon is_active en:
-
-USERS ✅
-SUBJECTS ✅
-ROLES
-ACTIONS
-MODULES
-CLASS_GROUPS
-USERS_ROLES
-STUDENT_GROUP (recomendado)
-
-❌ NO pongas is_active en:
-
-ATTENDANCE
-CLASS_SESSIONS
-DAYS
-SEMESTERS*/

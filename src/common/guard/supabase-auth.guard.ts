@@ -46,20 +46,31 @@ export class SupabaseAuthGuard implements CanActivate {
           'Token malformado: falta identificador',
         );
 
-      const dbUser = await this.userService.findOneByAuthId(payload.sub);
+      const dbUser = await this.userService.validateActiveUserByAuthId(
+        payload.sub,
+      );
 
-      if (!dbUser || !dbUser.is_active)
-        throw new UnauthorizedException(
-          !dbUser ? 'Usuario no registrado' : 'Usuario desactivado',
-        );
+      if (!dbUser) throw new UnauthorizedException('Usuario no autorizado');
+
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
+      console.log(dbUser);
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
+      const allPermissions = dbUser.roles.flatMap((role) =>
+        role.permissions.map((p) => p.name),
+      );
+      const uniquePermissions = [...new Set(allPermissions)];
 
       request.user = {
         authId: dbUser.auth_id,
         ID_user: dbUser.ID_user,
         email: (payload.email as string) || '',
-        // roleIds: dbUser.roles?.map((r) => r.id) ?? [],
+        roles: dbUser.roles?.map((r) => r.name) ?? [],
+        permissions: uniquePermissions,
       };
 
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
+      console.log(request.user);
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
       return true;
     } catch (error) {
       throw error instanceof UnauthorizedException
