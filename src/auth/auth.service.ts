@@ -36,25 +36,33 @@ export class AuthService {
 
   async deleteAllUserCredentials() {
     const supabase = this.supabaseAdmin.client;
+    let hasMore = true;
 
-    let page = 1;
-    const perPage = 1000;
-
-    while (true) {
+    while (hasMore) {
       const { data, error } = await supabase.auth.admin.listUsers({
-        page,
-        perPage,
+        page: 1,
+        perPage: 1000,
       });
 
-      if (error) throw error;
-
-      if (!data.users.length) break;
+      if (error)
+        throw new InternalServerErrorException(
+          `Error listando usuarios: ${error.message}`,
+        );
+      if (!data.users || data.users.length === 0) {
+        hasMore = false;
+        break;
+      }
 
       await Promise.all(
-        data.users.map((user) => supabase.auth.admin.deleteUser(user.id)),
+        data.users.map(async (user) => {
+          try {
+            await supabase.auth.admin.deleteUser(user.id);
+          } catch (e) {
+            console.log(e);
+            console.error(`No se pudo borrar el usuario ${user.id} en Auth`);
+          }
+        }),
       );
-
-      page++;
     }
   }
 

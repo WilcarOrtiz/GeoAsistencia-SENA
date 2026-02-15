@@ -13,13 +13,18 @@ export class MenuService {
     private readonly menuRepository: Repository<Menu>,
     private readonly permissionService: PermissionsService,
   ) {}
-  async create(createMenuDto: IMenuSystemCreate, manager?: EntityManager) {
-    const repo = manager ? manager.getRepository(Menu) : this.menuRepository;
 
-    const permission = await this.permissionService.findOneByName(
-      createMenuDto.permission_name,
+  private getRepo(manager?: EntityManager) {
+    return manager ? manager.getRepository(Menu) : this.menuRepository;
+  }
+
+  async create(createMenuDto: IMenuSystemCreate, manager?: EntityManager) {
+    const repo = this.getRepo(manager);
+
+    const [permission] = await this.permissionService.find({
+      names: [createMenuDto.permission_name],
       manager,
-    );
+    });
 
     if (!permission)
       throw new NotFoundException(
@@ -32,39 +37,31 @@ export class MenuService {
       icon: createMenuDto.icon,
       order_index: createMenuDto.order_index ?? 0,
       permission: permission,
+      parent: createMenuDto.parent_id
+        ? { id: createMenuDto.parent_id }
+        : undefined,
     });
 
     if (createMenuDto.parent_id) {
-      const parent = await repo.findOneBy({
+      const parentExists = await repo.findOneBy({
         id: createMenuDto.parent_id,
       });
-      if (!parent) {
-        throw new NotFoundException('El menú padre no existe');
-      }
-      newMenu.parent = parent;
+      if (!parentExists) throw new NotFoundException('El menú padre no existe');
     }
-
     return await repo.save(newMenu);
   }
 
-  async deleteAll(manager?: EntityManager) {
-    const repo = manager ? manager.getRepository(Menu) : this.menuRepository;
-
-    await repo.createQueryBuilder().delete().from(Menu).execute();
-  }
   async findMenusByPermissions(
     permissionIds: string[],
     manager?: EntityManager,
   ): Promise<NavigationItemDto[]> {
-    const repo = manager ? manager.getRepository(Menu) : this.menuRepository;
-
+    const repo = this.getRepo(manager);
     const menus = await repo.find({
       where: { permission: { id: In(permissionIds) } },
       relations: ['children'],
       order: { order_index: 'ASC' },
     });
-    const rootMenus = menus.filter((menu) => !menu.parent_id);
-    return this.formatTree(rootMenus);
+    return this.formatTree(menus.filter((menu) => !menu.parent_id));
   }
 
   private formatTree(menus: Menu[]): NavigationItemDto[] {
@@ -74,8 +71,15 @@ export class MenuService {
       route: menu.route,
       icon: menu.icon,
       order_index: menu.order_index,
-      // Se llama a sí misma: si hay hijos los formatea, si no, devuelve []
       children: menu.children ? this.formatTree(menu.children) : [],
     }));
+  }
+
+  async deleteAll(manager?: EntityManager) {
+    await this.getRepo(manager)
+      .createQueryBuilder()
+      .delete()
+      .from(Menu)
+      .execute();
   }
 }

@@ -8,23 +8,24 @@ import {
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}
 
-  @Patch('add-permissions')
-  addPermissions(@Body() dto: UpdateRolePermissions) {
-    return this.roleService.addPermissions(dto);
-  }
-
-  @Patch('remove-permissions')
-  removePermissions(@Body() dto: UpdateRolePermissions) {
-    return this.roleService.removePermissions(dto);
+  @Patch('sync-permissions')
+  async syncPermissions(@Body() dto: UpdateRolePermissions) {
+    return await this.roleService.syncPermissions(dto);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.roleService.findRoles(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const roles = await this.roleService.find({
+      ids: [id],
+      withPermissions: true,
+    });
+    return roles[0];
   }
 }

@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { AccessControlModuleModule } from './access-control-module/access-control-module.module';
-import { SemesterModule } from './semester/semester.module';
 import { UserModule } from './user/user.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
@@ -24,7 +23,6 @@ import { AuthModule } from './auth/auth.module';
     CommonModule,
     SeedModule,
     AccessControlModuleModule,
-    SemesterModule,
     UserModule,
     SupabaseModule,
     AuthModule,

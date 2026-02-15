@@ -4,6 +4,7 @@ import { initialData } from './data/seed-data';
 import { RolesService } from 'src/access-control-module/roles/roles.service';
 import { DataSource } from 'typeorm';
 import { MenuService } from '../access-control-module/menu/menu.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class SeedService {
@@ -12,10 +13,12 @@ export class SeedService {
     private readonly permissionService: PermissionsService,
     private readonly rolesService: RolesService,
     private readonly menuService: MenuService,
+    private readonly userService: UserService,
   ) {}
 
   async runSeed() {
     return await this.dataSource.transaction(async (manager) => {
+      await this.userService.deleteAllUser(manager);
       await this.menuService.deleteAll(manager);
       await this.rolesService.deleteAllRoles(manager);
       await this.permissionService.deleteAllPermissions(manager);

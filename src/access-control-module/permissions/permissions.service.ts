@@ -12,51 +12,39 @@ export class PermissionsService {
     private readonly permissionRepo: Repository<Permission>,
   ) {}
 
-  async create(body: IPermissionSystemCreate, manager?: EntityManager) {
-    const repo = manager
-      ? manager.getRepository(Permission)
-      : this.permissionRepo;
+  private getRepo(manager?: EntityManager) {
+    return manager ? manager.getRepository(Permission) : this.permissionRepo;
+  }
 
+  async create(body: IPermissionSystemCreate, manager?: EntityManager) {
+    const repo = this.getRepo(manager);
     const permission = repo.create(body);
     const saved = await repo.save(permission);
-
     return saved;
   }
 
-  async findManyByNames(names: string[], manager?: EntityManager) {
-    const repo = manager
-      ? manager.getRepository(Permission)
-      : this.permissionRepo;
-    return await repo.find({
-      where: { name: In(names) },
-    });
-  }
-
-  async findOneByName(name: string, manager?: EntityManager) {
-    const repo = manager
-      ? manager.getRepository(Permission)
-      : this.permissionRepo;
-
-    return await repo.findOneBy({ name });
-  }
-
   async deleteAllPermissions(manager?: EntityManager) {
-    const repo = manager
-      ? manager.getRepository(Permission)
-      : this.permissionRepo;
+    const repo = this.getRepo(manager);
     return await repo.createQueryBuilder().delete().where({}).execute();
   }
 
-  async findAll(paginationDto: PaginationDto) {
-    const { limit = 5, offset = 0 } = paginationDto;
-    const permissions = await this.permissionRepo.find({
-      take: limit,
-      skip: offset,
-      relations: {
-        roles: false,
+  async find(options: {
+    names?: string[];
+    pagination?: PaginationDto;
+    withRoles?: boolean;
+    manager?: EntityManager;
+  }) {
+    const { names, pagination, withRoles = false, manager } = options;
+    const repo = this.getRepo(manager);
+
+    return await repo.find({
+      where: names ? { name: In(names) } : {},
+      take: pagination?.limit,
+      skip: pagination?.offset,
+      relations: { roles: withRoles },
+      order: {
+        name: 'ASC',
       },
     });
-
-    return permissions;
   }
 }

@@ -3,7 +3,6 @@ import { PermissionsService } from './permissions.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-//TODO: SWAGGER
 @ApiBearerAuth('access-token')
 @Controller('permissions')
 export class PermissionsController {
@@ -11,6 +10,17 @@ export class PermissionsController {
 
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
-    return this.permissionsService.findAll(paginationDto);
+    return this.permissionsService.find({
+      pagination: paginationDto,
+      withRoles: true,
+    });
+  }
+
+  @Get('matrix')
+  findAllForMatrix(@Query() paginationDto: PaginationDto) {
+    return this.permissionsService.find({
+      pagination: paginationDto,
+      withRoles: true,
+    });
   }
 }

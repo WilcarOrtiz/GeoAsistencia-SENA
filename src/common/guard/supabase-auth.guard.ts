@@ -51,26 +51,14 @@ export class SupabaseAuthGuard implements CanActivate {
       );
 
       if (!dbUser) throw new UnauthorizedException('Usuario no autorizado');
-
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
-      console.log(dbUser);
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
-      const allPermissions = dbUser.roles.flatMap((role) =>
-        role.permissions.map((p) => p.name),
-      );
-      const uniquePermissions = [...new Set(allPermissions)];
-
       request.user = {
         authId: dbUser.auth_id,
         ID_user: dbUser.ID_user,
         email: (payload.email as string) || '',
-        roles: dbUser.roles?.map((r) => r.name) ?? [],
-        permissions: uniquePermissions,
+        roles: dbUser.roles.map((r) => r.name),
+        permissions: dbUser.processedPermissions,
       };
 
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
-      console.log(request.user);
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
       return true;
     } catch (error) {
       throw error instanceof UnauthorizedException

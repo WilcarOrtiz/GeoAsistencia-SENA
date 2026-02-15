@@ -10,24 +10,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateRolesUserDto } from './dto/update-roles-user.dto';
-import { FindAllUsersDto } from './dto/find-all-users.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { RequiredPermissions } from 'src/common/decorators/permissions.decorator';
+
 import {
-  AccessCriteria,
+  CreateUserDto,
+  FindAllUsersDto,
+  UpdateRolesUserDto,
+  UpdateUserDto,
+} from './dto';
+import {
   GetAccessCriteria,
-} from 'src/common/decorators/get-access-criteria.decorator';
-import { PermissionsGuard } from 'src/common/guard/PermissionsGuard.guard';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
+  GetUser,
+  PublicAccess,
+  RequiredPermissions,
+  AccessCriteria,
+} from 'src/common/decorators';
+import { PermissionsGuard } from 'src/common/guard';
 
 @ApiBearerAuth('access-token')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @PublicAccess()
   @Post()
   @ApiOperation({
     summary: 'Crear un nuevo usuario',
@@ -70,7 +75,7 @@ export class UserController {
       'Marca el usuario como inactivo (is_active = false). No elimina registros ni credenciales.',
   })
   deactivate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.deactivate(id);
+    return this.userService.setStatus(id, false);
   }
 
   @Patch(':id/activate')
@@ -80,7 +85,7 @@ export class UserController {
       'Reactiva un usuario previamente desactivado (is_active = true). Valida que el usuario exista y que no esté activo previamente..',
   })
   activate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.activate(id);
+    return this.userService.setStatus(id, true);
   }
 
   @Get('me')

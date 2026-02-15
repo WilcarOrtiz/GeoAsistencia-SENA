@@ -6,6 +6,7 @@ import { PermissionsService } from '../permissions/permissions.service';
 import { IRoleSystemCreate } from './interface/role-system.interface';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { Permission } from '../permissions/entities/permission.entity';
 
 @Injectable()
 export class RolesService {
@@ -15,14 +16,18 @@ export class RolesService {
     private readonly permissionService: PermissionsService,
   ) {}
 
-  async create(body: IRoleSystemCreate, manager?: EntityManager) {
-    const repo = manager ? manager.getRepository(Role) : this.roleRepo;
-    const { name, description, permissions } = body;
+  private getRepo(manager?: EntityManager) {
+    return manager ? manager.getRepository(Role) : this.roleRepo;
+  }
 
-    const permissionsDB = await this.permissionService.findManyByNames(
-      permissions,
+  async create(body: IRoleSystemCreate, manager?: EntityManager) {
+    const repo = this.getRepo(manager);
+    const { name, description } = body;
+
+    const permissionsDB = await this.permissionService.find({
+      names: body.permissions,
       manager,
-    );
+    });
 
     const newRole = repo.create({
       name,
@@ -34,90 +39,47 @@ export class RolesService {
   }
 
   async deleteAllRoles(manager?: EntityManager) {
-    const repo = manager ? manager.getRepository(Role) : this.roleRepo;
-    return await repo.createQueryBuilder().delete().where({}).execute();
-  }
-
-  async addPermissions(dto: UpdateRolePermissions) {
-    const { roleId, permissionIds } = dto;
-
-    if (!permissionIds || permissionIds.length === 0) return { added: 0 };
-
-    const uniqueIds = [...new Set(permissionIds)];
-
-    const role = await this.roleRepo.findOne({
-      where: { id: roleId },
-      relations: ['permissions'],
-    });
-
-    if (!role) throw new NotFoundException('Role not found');
-
-    const existingIds = new Set(role.permissions.map((p) => p.id));
-    const idsToAdd = uniqueIds.filter((id) => !existingIds.has(id));
-
-    if (idsToAdd.length === 0) return { added: 0 };
-
-    await this.roleRepo
+    return await this.getRepo(manager)
       .createQueryBuilder()
-      .relation(Role, 'permissions')
-      .of(roleId)
-      .add(idsToAdd);
-
-    return { added: idsToAdd.length };
+      .delete()
+      .where({})
+      .execute();
   }
 
-  async removePermissions(dto: UpdateRolePermissions) {
+  async syncPermissions(dto: UpdateRolePermissions) {
     const { roleId, permissionIds } = dto;
-
-    if (!permissionIds || permissionIds.length === 0) return { removed: 0 };
-
-    await this.roleRepo
-      .createQueryBuilder()
-      .relation(Role, 'permissions')
-      .of(roleId)
-      .remove(permissionIds);
-
-    return { removed: permissionIds.length };
+    const [role] = await this.find({ ids: [roleId], withPermissions: true });
+    role.permissions = permissionIds.map((id) => ({ id }) as Permission);
+    return await this.roleRepo.save(role);
   }
 
-  async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
-
-    const roles = await this.roleRepo.find({
-      take: limit,
-      skip: offset,
-      relations: {
-        permissions: true,
-      },
-    });
-    return roles;
+  getUniquePermissions(roles: Role[]) {
+    const allPermissions = roles.flatMap((r) => r.permissions ?? []);
+    return {
+      names: [...new Set(allPermissions.map((p) => p.name))],
+      ids: allPermissions.map((p) => p.id),
+    };
   }
 
-  async findRoles(ids: string[] | string) {
-    const uniqueIds = [...new Set(ids)];
+  async find(options: {
+    ids?: string[];
+    withPermissions?: boolean;
+    pagination?: PaginationDto;
+    manager?: EntityManager;
+  }) {
+    const { ids, withPermissions = false, pagination, manager } = options;
+    const repo = this.getRepo(manager);
 
-    const roles = await this.roleRepo.findBy({
-      id: In(uniqueIds),
+    const roles = await repo.find({
+      where: ids ? { id: In(ids) } : {},
+      relations: { permissions: withPermissions },
+      take: pagination?.limit,
+      skip: pagination?.offset,
     });
 
-    if (roles.length !== uniqueIds.length)
+    if (ids && roles.length !== [...new Set(ids)].length) {
       throw new NotFoundException('Uno o más roles no fueron encontrados');
-
+    }
     return roles;
-  }
-
-  // roles.service.ts
-  async findRolesWithPermissions(roleIds: string[]): Promise<Role[]> {
-    return await this.roleRepo.find({
-      where: {
-        id: In(roleIds),
-      },
-      relations: ['permissions'],
-    });
   }
 }
-
-/*Acción,Recomendación de retorno
-Crear,Retorna el objeto creado (para que el front lo añada a la lista).
-Actualizar,Retorna el objeto actualizado.
-Eliminar,Retorna solo un message confirmando la acción. */

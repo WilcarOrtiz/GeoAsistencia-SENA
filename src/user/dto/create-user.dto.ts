@@ -43,7 +43,7 @@ export class CreateUserDto {
   @IsEmail({}, { message: 'Correo electrónico no válido' })
   email: string;
 
-  @ApiProperty({ example: '' })
+  @ApiProperty({})
   @IsArray()
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un rol' })
   @IsUUID('4', { each: true, message: 'ID de rol no válido' })

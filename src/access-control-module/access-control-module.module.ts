@@ -16,15 +16,3 @@ import { Menu } from './menu/entities/menu.entity';
   exports: [PermissionsService, RolesService, MenuService, TypeOrmModule],
 })
 export class AccessControlModuleModule {}
-
-/*@Module({
-  controllers: [RoleController, PermissionsController],
-  providers: [RolesService, PermissionsService, MenuService],
-  imports: [
-    TypeOrmModule.forFeature([Permission, Role, Menu]),
-    forwardRef(() => UserModule),
-  ],
-  exports: [PermissionsService, RolesService, MenuService, TypeOrmModule],
-})
-export class AccessControlModuleModule {}
- */
