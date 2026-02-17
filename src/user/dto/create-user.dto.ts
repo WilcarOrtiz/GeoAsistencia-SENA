@@ -23,7 +23,7 @@ export class CreateUserDto {
   ID: string;
 
   @ApiProperty({ example: 'Wilcar' })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El primer nombre es obligatorio' })
   first_name: string;
 
   @ApiProperty({ example: 'Daniel', required: false })
@@ -31,7 +31,7 @@ export class CreateUserDto {
   middle_name?: string;
 
   @ApiProperty({ example: 'Ortiz' })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El primer apellido es obligatorio' })
   last_name: string;
 
   @ApiProperty({ example: 'Colpas', required: false })
@@ -39,7 +39,7 @@ export class CreateUserDto {
   second_last_name?: string;
 
   @ApiProperty({ example: 'ortizcolpaswilcardaniel@gmail.com' })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El correo es obligatorio' })
   @IsEmail({}, { message: 'Correo electrónico no válido' })
   email: string;
 

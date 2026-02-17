@@ -36,10 +36,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
       if (dbError.code === '23505') {
         status = HttpStatus.CONFLICT;
-        message = 'Registro duplicado';
+        message = 'Duplicate record';
       } else {
         status = HttpStatus.BAD_REQUEST;
-        message = 'Error de base de datos';
+        message = 'Database error';
       }
 
       this.logger.error('DB Error', dbError);
@@ -54,7 +54,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const errorMsg = res.message;
         message = Array.isArray(errorMsg)
           ? errorMsg[0]
-          : errorMsg || 'Error de validación';
+          : errorMsg || 'Validation error';
       } else {
         message = res;
       }
@@ -63,7 +63,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // ERRORES DESCONOCIDOS
     else {
       const error = exception as Error;
-      this.logger.error(`Error no controlado: ${error.message}`, error.stack);
+      this.logger.error(`Uncontrolled error: ${error.message}`, error.stack);
     }
 
     response.status(status).json({

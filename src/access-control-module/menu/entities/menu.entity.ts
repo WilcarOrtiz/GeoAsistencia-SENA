@@ -30,7 +30,6 @@ export class Menu {
   permission: Permission;
 
   // --- RELACIÓN PADRE e HIJO (Auto-relación) ---
-
   @Column({ nullable: true })
   parent_id: string;
 

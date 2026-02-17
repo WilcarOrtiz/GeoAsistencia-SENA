@@ -19,16 +19,16 @@ export class AuthService {
 
     if (error) {
       if (error.message.includes('already registered'))
-        throw new BadRequestException('El correo electrónico ya está en uso');
+        throw new BadRequestException('Email is already in use');
 
       throw new InternalServerErrorException(
-        `Error de Supabase: ${error.message}`,
+        `Supabase error: ${error.message}`,
       );
     }
 
     if (!data?.user)
       throw new InternalServerErrorException(
-        'No se pudo crear el usuario en Auth',
+        'The user could not be created in Auth Supabase',
       );
 
     return data.user.id;
@@ -46,7 +46,7 @@ export class AuthService {
 
       if (error)
         throw new InternalServerErrorException(
-          `Error listando usuarios: ${error.message}`,
+          `Error listing users: ${error.message}`,
         );
       if (!data.users || data.users.length === 0) {
         hasMore = false;
@@ -59,7 +59,7 @@ export class AuthService {
             await supabase.auth.admin.deleteUser(user.id);
           } catch (e) {
             console.log(e);
-            console.error(`No se pudo borrar el usuario ${user.id} en Auth`);
+            console.error(`The user ${user.id} could not be deleted in Auth`);
           }
         }),
       );

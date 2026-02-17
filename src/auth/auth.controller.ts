@@ -16,3 +16,28 @@ export class AuthController {
  */
 
 //TODO: tengo que poner lo del barer de swagger en los controlladores y el guard ver si lo dejo globla o que
+
+/*curl -X POST 'https://mxcntpwcspuusvzlbdri.supabase.co/auth/v1/token?grant_type=password' \
+-H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14Y250cHdjc3B1dXN2emxiZHJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjg3MTEsImV4cCI6MjA4NDg0NDcxMX0.kYtc3SAyKu-a0GTbhbglcPG1SQNeZiqaEDJoHlxnXjk' \
+-H 'Content-Type: application/json' \
+-d '{
+  "email": "ortizcolpaswilcar@gmail.com",
+  "password": "1066865141"
+}' 
+
+
+
+curl -X POST 'https://mxcntpwcspuusvzlbdri.supabase.co/auth/v1/token?grant_type=password' \
+-H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14Y250cHdjc3B1dXN2emxiZHJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjg3MTEsImV4cCI6MjA4NDg0NDcxMX0.kYtc3SAyKu-a0GTbhbglcPG1SQNeZiqaEDJoHlxnXjk' \
+-H 'Content-Type: application/json' \
+-d '{
+  "email": "ortizcolpas@gmail.com",
+  "password": "106686514o"
+}' 
+
+
+
+
+
+
+*/

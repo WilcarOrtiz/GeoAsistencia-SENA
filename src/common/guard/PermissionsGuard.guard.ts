@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
   CanActivate,
@@ -7,50 +5,44 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
+
 import { ValidRole } from '../constants/valid-role.enum';
+import { PERMISSIONS_KEY } from '../constants/key-decorators';
+import { ICurrentUser } from '../interface/current-user.interface';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
-      PERMISSIONS_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredPermissions =
+      this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? [];
 
-    if (!requiredPermissions || requiredPermissions.length === 0) return true;
+    if (!requiredPermissions.length) return true;
 
-    const request = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: ICurrentUser }>();
     const user = request.user;
+    if (!user) throw new ForbiddenException('User not found in request');
 
-    if (!user) {
-      throw new ForbiddenException('Usuario no encontrado en la petición');
-    }
+    const { roles = [], permissions = [] } = user;
+    const elevatedRoles = new Set([ValidRole.SUPER_ADMIN, ValidRole.ADMIN]);
+    if (roles.some((role) => elevatedRoles.has(role))) return true;
 
-    const userRoles: string[] = user.roles || [];
-    const userPermissions: string[] = user.permissions || [];
+    const permissionSet = new Set(permissions);
 
-    if (
-      userRoles.includes(ValidRole.SUPER_ADMIN) ||
-      userRoles.includes(ValidRole.ADMIN)
-    ) {
-      return true;
-    }
-
-    const hasAllRequiredPermissions = requiredPermissions.every((perm) =>
-      userPermissions.includes(perm),
+    const missingPermissions = requiredPermissions.filter(
+      (perm) => !permissionSet.has(perm),
     );
 
-    if (!hasAllRequiredPermissions) {
-      const missing = requiredPermissions.filter(
-        (p) => !userPermissions.includes(p),
-      );
+    if (missingPermissions.length)
       throw new ForbiddenException(
-        `No tienes los permisos suficientes. Faltan: [${missing.join(', ')}]`,
+        `Missing permissions: [${missingPermissions.join(', ')}]`,
       );
-    }
 
     return true;
   }

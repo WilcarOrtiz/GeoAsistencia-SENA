@@ -1,7 +1,7 @@
 import {
   createParamDecorator,
   ExecutionContext,
-  InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ICurrentUser } from '../interface/current-user.interface';
 
@@ -14,11 +14,10 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!user) {
-      throw new InternalServerErrorException(
-        'Usuario no encontrado en la petición (AuthGuard ausente)',
+    if (!user)
+      throw new UnauthorizedException(
+        'User not found in request (AuthGuard absent)',
       );
-    }
 
     // 4. Si pides una propiedad específica, TS verificará que exista en ICurrentUser
     // Gracias a 'keyof ICurrentUser', si escribes @GetUser('id_erróneo') fallará en compilación.

@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   JoinTable,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Permission } from '../../permissions/entities/permission.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -50,4 +51,7 @@ export class Role {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updated_at: Date;
 }

@@ -9,6 +9,7 @@ import {
   PrimaryColumn,
   BeforeInsert,
   BeforeUpdate,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('USERS')
@@ -56,6 +57,9 @@ export class User {
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updated_at: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

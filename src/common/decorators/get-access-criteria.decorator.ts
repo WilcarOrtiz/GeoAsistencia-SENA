@@ -20,9 +20,8 @@ export const GetAccessCriteria = createParamDecorator(
     if (
       roles.includes(ValidRole.ADMIN) ||
       roles.includes(ValidRole.SUPER_ADMIN)
-    ) {
+    )
       return {};
-    }
 
     return { is_active: true };
   },

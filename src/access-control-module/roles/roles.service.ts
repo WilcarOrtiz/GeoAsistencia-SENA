@@ -78,7 +78,7 @@ export class RolesService {
     });
 
     if (ids && roles.length !== [...new Set(ids)].length) {
-      throw new NotFoundException('Uno o más roles no fueron encontrados');
+      throw new NotFoundException('One or more roles were not found');
     }
     return roles;
   }
