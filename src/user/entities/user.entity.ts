@@ -1,4 +1,5 @@
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
+import { toTitleCase } from 'src/common/utils/string-format.util';
 import {
   Column,
   CreateDateColumn,
@@ -64,22 +65,11 @@ export class User {
   @BeforeInsert()
   @BeforeUpdate()
   normalizeNames() {
-    this.first_name = this.toTitleCase(this.first_name);
-
-    if (this.middle_name) this.middle_name = this.toTitleCase(this.middle_name);
-
-    this.last_name = this.toTitleCase(this.last_name);
-
+    if (this.first_name) this.first_name = toTitleCase(this.first_name);
+    if (this.middle_name) this.middle_name = toTitleCase(this.middle_name);
+    if (this.last_name) this.last_name = toTitleCase(this.last_name);
     if (this.second_last_name)
-      this.second_last_name = this.toTitleCase(this.second_last_name);
-  }
-
-  private toTitleCase(text: string): string {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+      this.second_last_name = toTitleCase(this.second_last_name);
   }
 }
 

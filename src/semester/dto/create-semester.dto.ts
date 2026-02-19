@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, Length } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDate, IsEnum, IsNotEmpty, Length } from 'class-validator';
 import { StateSemester } from 'src/common/constants/state_semester';
 
 export class CreateSemesterDto {
@@ -12,13 +13,15 @@ export class CreateSemesterDto {
 
   @ApiProperty({ example: '2025-01-15' })
   @IsNotEmpty({ message: 'La fecha de inicio es obligatoria' })
-  @IsDateString({}, { message: 'La fecha de inicio no es válida' })
-  start_date: string;
+  @Type(() => Date)
+  @IsDate({ message: 'La fecha de inicio no es válida' })
+  start_date: Date;
 
   @ApiProperty({ example: '2025-06-30' })
   @IsNotEmpty({ message: 'La fecha de finalización es obligatoria' })
-  @IsDateString({}, { message: 'La fecha de finalización no es válida' })
-  end_date: string;
+  @Type(() => Date)
+  @IsDate({ message: 'La fecha de finalización no es válida' })
+  end_date: Date;
 
   @ApiProperty({
     enum: StateSemester,

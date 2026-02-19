@@ -7,6 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { SemesterService } from './semester.service';
 
@@ -27,8 +28,7 @@ export class SemesterController {
 
   @Post()
   @ApiOperation({
-    summary: 'Crear un nuevo semestre',
-    description: 'Crea un nuevo semestre en el sistema.',
+    summary: 'Crear semestre',
   })
   create(@Body() createSemesterDto: CreateSemesterDto) {
     return this.semesterService.create(createSemesterDto);
@@ -36,7 +36,7 @@ export class SemesterController {
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Actualizar un semestre',
+    summary: 'Actualizar semestre',
     description:
       'Actualizar la informacion base de un semestre un nuevo semestre en el sistema.',
   })
@@ -62,7 +62,7 @@ export class SemesterController {
 
   @Get(':term')
   @ApiOperation({
-    summary: 'obtener un semestre',
+    summary: 'obtener semestre',
     description:
       'Obtiene un semestre en base a un termino de busqueda (code, id).',
   })
@@ -73,10 +73,17 @@ export class SemesterController {
   @Get()
   @ApiOperation({
     summary: 'Listar semestres',
-    description:
-      'Lista la informacion de los semestres registrados en el sistema.',
   })
   findAll(@Query() paginationDto: PaginationDto) {
     return this.semesterService.findAll(paginationDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Eliminar semestre',
+    description: 'Elimina LOGICAMENTE el semestre del sistema',
+  })
+  remove(@Param('id') id: string) {
+    return this.semesterService.remove(id);
   }
 }

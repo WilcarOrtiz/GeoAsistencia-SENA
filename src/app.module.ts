@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { SemesterModule } from './semester/semester.module';
+import { SubjectsModule } from './subjects/subjects.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SemesterModule } from './semester/semester.module';
     SupabaseModule,
     AuthModule,
     SemesterModule,
+    SubjectsModule,
   ],
   providers: [],
 })

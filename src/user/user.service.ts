@@ -33,21 +33,41 @@ export class UserService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
-    const roles = await this.rolesService.find({ ids: createUserDto.rolesID });
+    const {
+      ID,
+      email,
+      first_name,
+      last_name,
+      rolesID,
+      middle_name,
+      second_last_name,
+    } = createUserDto;
+    const existingUser = await this.userRepo.findOneBy({
+      ID_user: ID,
+    });
+    if (existingUser) {
+      throw new BadRequestException(
+        `Ya existe un usuario con el documento ${ID}`,
+      );
+    }
 
-    const userIdAuth = await this.authService.createUserCredentials(
-      createUserDto.email,
-      createUserDto.ID,
-    );
+    const roles = await this.rolesService.find({ ids: rolesID });
+    if (roles.length !== rolesID.length) {
+      throw new BadRequestException(
+        'Uno o más roles seleccionados no son válidos',
+      );
+    }
+
+    const userIdAuth = await this.authService.createUserCredentials(email, ID);
 
     try {
       const user = this.userRepo.create({
         auth_id: userIdAuth,
         ID_user: createUserDto.ID,
-        first_name: createUserDto.first_name,
-        middle_name: createUserDto.middle_name,
-        last_name: createUserDto.last_name,
-        second_last_name: createUserDto.second_last_name,
+        first_name,
+        middle_name,
+        last_name,
+        second_last_name,
         roles: roles,
       });
 
@@ -59,27 +79,39 @@ export class UserService {
   }
 
   async update(auth_id: string, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.ID) {
+      const existing = await this.userRepo.findOneBy({
+        ID_user: updateUserDto.ID,
+      });
+      if (existing && existing.auth_id !== auth_id) {
+        throw new BadRequestException(
+          'Ya existe un usuario con ese número de identificación',
+        );
+      }
+    }
+
     const user = await this.userRepo.preload({
       auth_id,
       ...updateUserDto,
     });
 
-    if (!user)
-      throw new NotFoundException(`Usuario con ${auth_id} no encontrado`);
+    if (!user) throw new NotFoundException(`Usuario no encontrado`);
     return this.userRepo.save(user);
   }
 
   async updateRoles(id: string, updateRolesUserDto: UpdateRolesUserDto) {
-    const user = await this.userRepo.findOne({
-      where: { auth_id: id },
-      relations: ['roles'],
-    });
+    const { rolesID } = updateRolesUserDto;
 
+    const user = await this.userRepo.findOneBy({ auth_id: id });
     if (!user) throw new NotFoundException('Usuario no encontrado');
+    const newRoles = await this.rolesService.find({ ids: rolesID });
 
-    const newRoles = await this.rolesService.find({
-      ids: updateRolesUserDto.rolesID,
-    });
+    if (newRoles.length !== rolesID.length) {
+      throw new BadRequestException(
+        'Uno o más roles proporcionados no son válidos',
+      );
+    }
+
     user.roles = newRoles;
     return await this.userRepo.save(user);
   }
@@ -200,10 +232,10 @@ export class UserService {
 
   async deleteAllUser(manager?: EntityManager) {
     const repo = manager ? manager.getRepository(User) : this.userRepo;
-    await this.authService.deleteAllUserCredentials();
     try {
       await repo.query('DELETE FROM "user_roles"');
       await repo.createQueryBuilder().delete().where({}).execute();
+      await this.authService.deleteAllUserCredentials();
       return { message: 'Todos los usuarios (Auth y DB) han sido eliminados' };
     } catch (error) {
       console.error(error);

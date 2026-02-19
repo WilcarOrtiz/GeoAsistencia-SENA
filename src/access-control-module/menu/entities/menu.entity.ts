@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 
 @Entity('MENU_ITEMS')
@@ -13,7 +14,7 @@ export class Menu {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'citext', nullable: false })
   name: string;
 
   @Column({ nullable: true })
@@ -30,6 +31,7 @@ export class Menu {
   permission: Permission;
 
   // --- RELACIÓN PADRE e HIJO (Auto-relación) ---
+  @Index()
   @Column({ nullable: true })
   parent_id: string;
 

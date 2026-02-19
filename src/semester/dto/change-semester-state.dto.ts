@@ -5,9 +5,9 @@ import { StateSemester } from 'src/common/constants/state_semester';
 export class ChangeSemesterStateDto {
   @ApiProperty({
     enum: StateSemester,
-    enumName: 'StateSemester', // Esto crea una referencia global en Swagger
+    enumName: 'StateSemester',
     description: 'Estado actual del semestre',
-    example: StateSemester.ACTIVO, // Ayuda a que Swagger sepa qué mostrar por defecto
+    example: StateSemester.ACTIVO,
   })
   @IsEnum(StateSemester)
   state: StateSemester;
