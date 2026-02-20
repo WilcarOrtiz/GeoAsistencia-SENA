@@ -1,4 +1,4 @@
-import { ValidRole } from '../constants/valid-role.enum';
+import { ValidRole } from '../enums/valid-role.enum';
 
 export interface ICurrentUser {
   authId: string;

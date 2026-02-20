@@ -1,4 +1,4 @@
-import { ValidRole } from 'src/common/constants/valid-role.enum';
+import { ValidRole } from 'src/common/enums/valid-role.enum';
 export interface IRoleSystemCreate {
   name: ValidRole;
   description: string;

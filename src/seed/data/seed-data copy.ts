@@ -1,7 +1,7 @@
 import { IMenuSystemCreate } from 'src/access-control-module/menu/interface/menu-system.interface';
 import { IPermissionSystemCreate } from 'src/access-control-module/permissions/interface/permission-system.interface';
 import { IRoleSystemCreate } from 'src/access-control-module/roles/interface/role-system.interface';
-import { ValidRole } from 'src/common/constants/valid-role.enum';
+import { ValidRole } from 'src/common/enums/valid-role.enum';
 
 type IMenuSeed = IMenuSystemCreate & { parent_name?: string };
 
@@ -46,7 +46,7 @@ export const initialData: SeedData = {
       ],
     },
     {
-      name: ValidRole.DOCENTE,
+      name: ValidRole.TEACHER,
       description: 'Docente con acceso limitado',
       permissions: [
         'ver_asignaturas',

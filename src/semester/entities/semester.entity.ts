@@ -1,4 +1,5 @@
-import { StateSemester } from 'src/common/constants/state_semester';
+import { ClassGroup } from 'src/class_groups/entities/class_group.entity';
+import { StateSemester } from 'src/common/enums/state_semester.enum';
 import {
   normalizeCode,
   toTitleCase,
@@ -13,6 +14,7 @@ import {
   Check,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('SEMESTERS')
@@ -68,6 +70,9 @@ export class Semester {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
+
+  @OneToMany(() => ClassGroup, (classGroup) => classGroup.semester)
+  classGroups: ClassGroup[];
 
   @BeforeInsert()
   @BeforeUpdate()

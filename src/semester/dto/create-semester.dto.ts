@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsNotEmpty, Length } from 'class-validator';
-import { StateSemester } from 'src/common/constants/state_semester';
+import { StateSemester } from 'src/common/enums/state_semester.enum';
 
 export class CreateSemesterDto {
   @ApiProperty({ example: 'Primer semestre académico 2025' })

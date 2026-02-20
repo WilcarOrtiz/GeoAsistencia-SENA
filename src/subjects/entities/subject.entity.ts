@@ -1,3 +1,4 @@
+import { ClassGroup } from 'src/class_groups/entities/class_group.entity';
 import {
   normalizeCode,
   toTitleCase,
@@ -9,6 +10,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,6 +35,9 @@ export class Subject {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
+
+  @OneToMany(() => ClassGroup, (classGroup) => classGroup.subject)
+  classGroups: ClassGroup[];
 
   @BeforeInsert()
   @BeforeUpdate()

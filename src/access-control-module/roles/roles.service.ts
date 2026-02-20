@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -39,11 +43,16 @@ export class RolesService {
   }
 
   async deleteAllRoles(manager?: EntityManager) {
-    return await this.getRepo(manager)
-      .createQueryBuilder()
-      .delete()
-      .where({})
-      .execute();
+    const repo = this.getRepo(manager);
+
+    try {
+      await repo.query('DELETE FROM "roles_permissions"');
+      await repo.createQueryBuilder().delete().execute();
+      return { message: 'Todos los roles y permisos han sido eliminados' };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Error al limpiar roles en DB');
+    }
   }
 
   async syncPermissions(dto: UpdateRolePermissions) {

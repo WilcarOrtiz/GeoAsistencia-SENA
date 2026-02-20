@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { ValidRole } from '../constants/valid-role.enum';
+import { ValidRole } from '../enums/valid-role.enum';
 import { PERMISSIONS_KEY } from '../constants/key-decorators';
 import { ICurrentUser } from '../interface/current-user.interface';
 

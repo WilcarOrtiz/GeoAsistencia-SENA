@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Permission } from '../../permissions/entities/permission.entity';
 import { User } from 'src/user/entities/user.entity';
-import { ValidRole } from 'src/common/constants/valid-role.enum';
+import { ValidRole } from 'src/common/enums/valid-role.enum';
 
 @Entity('ROLES')
 export class Role {
@@ -31,7 +31,7 @@ export class Role {
   is_active: boolean;
 
   @ManyToMany(() => Permission, (permission) => permission.roles, {
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinTable({
     name: 'roles_permissions',

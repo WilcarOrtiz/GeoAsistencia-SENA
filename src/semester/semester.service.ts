@@ -8,7 +8,7 @@ import { UpdateSemesterDto } from './dto/update-semester.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Not, Repository } from 'typeorm';
 import { Semester } from './entities/semester.entity';
-import { StateSemester } from 'src/common/constants/state_semester';
+import { StateSemester } from 'src/common/enums/state_semester.enum';
 import { isUUID } from 'class-validator';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 

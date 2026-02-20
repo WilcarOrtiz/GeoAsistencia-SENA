@@ -11,7 +11,10 @@ import {
   BeforeInsert,
   BeforeUpdate,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
+import { Teacher } from './teacher.entity';
+import { Student } from './student.entity';
 
 @Entity('USERS')
 export class User {
@@ -34,14 +37,11 @@ export class User {
   @Column({ type: 'varchar', nullable: true, length: 30 })
   second_last_name?: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  uuid_phone: string;
-
   @Column({ default: true })
   is_active: boolean;
 
   @ManyToMany(() => Role, (role) => role.users, {
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinTable({
     name: 'user_roles',
@@ -55,6 +55,12 @@ export class User {
     },
   })
   roles: Role[];
+
+  @OneToOne(() => Student, (student) => student.user)
+  student: Student;
+
+  @OneToOne(() => Teacher, (teacher) => teacher.user)
+  teacher: Teacher;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

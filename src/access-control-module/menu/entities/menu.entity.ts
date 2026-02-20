@@ -36,7 +36,7 @@ export class Menu {
   parent_id: string;
 
   // El "Padre": Muchos ítems pueden pertenecer a un mismo padre
-  @ManyToOne(() => Menu, (menu) => menu.children, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Menu, (menu) => menu.children, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'parent_id' })
   parent: Menu;
 

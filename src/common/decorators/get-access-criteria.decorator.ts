@@ -1,6 +1,6 @@
 import { ICurrentUser } from './../interface/current-user.interface';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { ValidRole } from '../constants/valid-role.enum';
+import { ValidRole } from '../enums/valid-role.enum';
 
 export class AccessCriteria {
   is_active?: boolean;
