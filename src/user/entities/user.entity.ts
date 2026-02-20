@@ -1,5 +1,7 @@
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { toTitleCase } from 'src/common/utils/string-format.util';
+import { Student } from 'src/student/entities/student.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
 import {
   Column,
   CreateDateColumn,
@@ -13,8 +15,6 @@ import {
   UpdateDateColumn,
   OneToOne,
 } from 'typeorm';
-import { Teacher } from './teacher.entity';
-import { Student } from './student.entity';
 
 @Entity('USERS')
 export class User {

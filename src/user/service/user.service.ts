@@ -5,11 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { EntityManager, EntityTarget, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RolesService } from '../access-control-module/roles/roles.service';
+import { RolesService } from '../../access-control-module/roles/roles.service';
 import { AuthService } from 'src/auth/auth.service';
-import { MenuService } from '../access-control-module/menu/menu.service';
+import { MenuService } from '../../access-control-module/menu/menu.service';
 
 import { isUUID } from 'class-validator';
 import { AccessCriteria } from 'src/common/decorators/get-access-criteria.decorator';
@@ -19,33 +19,22 @@ import {
   UpdateRolesUserDto,
   UpdateUserDto,
   UserMeResponseDto,
-} from './dto';
+} from '../dto';
 
 import { ValidRole } from 'src/common/enums/valid-role.enum';
-import { User } from './entities/user.entity';
-import { Student } from 'src/student/entities/student.entity';
-import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { User } from '../entities/user.entity';
+import { UserProfileService } from './user-profile.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-
-    @InjectRepository(Student)
-    private readonly studentRepo: Repository<Student>,
-
-    @InjectRepository(Teacher)
-    private readonly teacherRepo: Repository<Teacher>,
     private readonly authService: AuthService,
+    private userProfileService: UserProfileService,
     private readonly rolesService: RolesService,
     private readonly menuService: MenuService,
   ) {}
-
-  PROFILE_ENTITIES: Partial<Record<ValidRole, EntityTarget<any>>> = {
-    [ValidRole.STUDENT]: Student,
-    [ValidRole.TEACHER]: Teacher,
-  };
 
   async createUser(createUserDto: CreateUserDto) {
     const {
@@ -69,9 +58,7 @@ export class UserService {
 
     const roles = await this.rolesService.find({ ids: rolesID });
     if (roles.length !== rolesID.length) {
-      throw new BadRequestException(
-        'Uno o más roles seleccionados no son válidos',
-      );
+      throw new BadRequestException('Roles válidos');
     }
 
     const userIdAuth = await this.authService.createUserCredentials(email, ID);
@@ -91,12 +78,11 @@ export class UserService {
 
           const savedUser = await manager.save(user);
 
-          for (const role of roles) {
-            const entityClass =
-              this.PROFILE_ENTITIES[role.name.toUpperCase() as ValidRole];
-            if (entityClass)
-              await manager.save(entityClass, { auth_id: savedUser.auth_id });
-          }
+          await this.userProfileService.createProfiles(
+            manager,
+            savedUser.auth_id,
+            roles,
+          );
 
           return savedUser;
         } catch (error) {
@@ -129,9 +115,7 @@ export class UserService {
     return this.userRepo.save(user);
   }
 
-  async updateRoles(id: string, updateRolesUserDto: UpdateRolesUserDto) {
-    const { rolesID } = updateRolesUserDto;
-
+  async updateRoles(id: string, { rolesID }: UpdateRolesUserDto) {
     const user = await this.userRepo.findOne({
       where: { auth_id: id },
       relations: ['roles'],
@@ -139,45 +123,15 @@ export class UserService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const newRoles = await this.rolesService.find({ ids: rolesID });
-    if (newRoles.length !== rolesID.length) {
-      throw new BadRequestException('Algun rol no valido');
-    }
+    if (newRoles.length !== rolesID.length)
+      throw new BadRequestException('Algún rol no válido');
 
-    return await this.userRepo.manager.transaction(
-      async (manager: EntityManager) => {
-        user.roles = newRoles;
-        const savedUser = await manager.save(user);
-
-        const newRoleNames = newRoles.map((r) => r.name.toUpperCase());
-
-        for (const roleKey of Object.keys(this.PROFILE_ENTITIES)) {
-          const entity = this.PROFILE_ENTITIES[roleKey] as EntityTarget<any>;
-          const hasThisRole = newRoleNames.includes(roleKey);
-
-          const existingProfile = await manager.findOneBy<Student | Teacher>(
-            entity,
-            {
-              auth_id: id,
-            },
-          );
-
-          if (hasThisRole) {
-            if (!existingProfile) {
-              await manager.save(entity, { auth_id: id, is_active: true });
-            } else {
-              await manager.update(
-                entity,
-                { auth_id: id },
-                { is_active: true },
-              );
-            }
-          } else if (existingProfile) {
-            await manager.update(entity, { auth_id: id }, { is_active: false });
-          }
-        }
-        return savedUser;
-      },
-    );
+    return this.userRepo.manager.transaction(async (manager) => {
+      user.roles = newRoles;
+      const savedUser = await manager.save(user);
+      await this.userProfileService.syncProfiles(manager, id, newRoles); // ← limpio
+      return savedUser;
+    });
   }
 
   async findOne(term: string, accessCriteria: AccessCriteria) {

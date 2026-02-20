@@ -9,14 +9,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ClassSessions } from './class-session.entity';
-import { Student } from 'src/user/entities/student.entity';
-
-export enum AttendanceStatus {
-  PRESENT = 'PRESENT',
-  ABSENT = 'ABSENT',
-  LATE = 'LATE',
-  EXCUSED = 'EXCUSED',
-}
+import { Student } from 'src/student/entities/student.entity';
+import { AttendanceStatus } from 'src/common/enums/attendance-status.enum';
 
 @Entity('ATTENDANCES')
 @Index(['student', 'classSession'], { unique: true })

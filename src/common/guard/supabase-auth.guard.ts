@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { PUBLIC_KEY } from 'src/common/constants/key-decorators';
 import { JOSE_JWKS_PROVIDER } from '../provider/supabase-jwks.provider';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/user/service/user.service';
 import { ICurrentUser } from '../interface/current-user.interface';
 
 interface RequestWithUser extends Request {

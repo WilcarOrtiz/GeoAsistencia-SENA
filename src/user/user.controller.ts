@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UserService } from './service/user.service';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 import {
@@ -43,6 +43,7 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
+  @PublicAccess()
   @Patch(':id/roles')
   @ApiOperation({
     summary: 'Actualizar roles de un usuario',
@@ -55,6 +56,7 @@ export class UserController {
     return this.userService.updateRoles(id, updateRolesUserDto);
   }
 
+  @PublicAccess()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar información básica del usuario',
@@ -68,6 +70,7 @@ export class UserController {
     return this.userService.update(id, updateUserDto);
   }
 
+  @PublicAccess()
   @Patch(':id/deactivate')
   @ApiOperation({
     summary: 'Desactivar usuario',
@@ -78,6 +81,7 @@ export class UserController {
     return this.userService.setStatus(id, false);
   }
 
+  @PublicAccess()
   @Patch(':id/activate')
   @ApiOperation({
     summary: 'Activar usuario',
@@ -105,6 +109,7 @@ export class UserController {
     return this.userService.getUserProfile(authId);
   }
 
+  @PublicAccess()
   @Get()
   @RequiredPermissions('ver_asignaturas')
   @UseGuards(PermissionsGuard)

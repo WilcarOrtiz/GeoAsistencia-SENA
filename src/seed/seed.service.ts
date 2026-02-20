@@ -4,7 +4,7 @@ import { initialData } from './data/seed-data';
 import { RolesService } from 'src/access-control-module/roles/roles.service';
 import { DataSource } from 'typeorm';
 import { MenuService } from '../access-control-module/menu/menu.service';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/user/service/user.service';
 
 @Injectable()
 export class SeedService {

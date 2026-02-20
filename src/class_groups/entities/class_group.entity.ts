@@ -22,8 +22,8 @@ import {
 } from 'typeorm';
 import { ClassDays } from './class_days.entity';
 import { ClassSessions } from 'src/attendance-module/entities';
-import { Teacher } from 'src/user/entities/teacher.entity';
-import { Student } from 'src/user/entities/student.entity';
+import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Student } from 'src/student/entities/student.entity';
 
 @Entity('CLASS_GROUPS')
 @Unique(['semester', 'subject', 'name'])
