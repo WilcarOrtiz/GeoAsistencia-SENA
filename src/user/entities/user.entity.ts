@@ -68,6 +68,17 @@ export class User {
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 
+  get fullName(): string {
+    return [
+      this.first_name,
+      this.middle_name,
+      this.last_name,
+      this.second_last_name,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
   @BeforeInsert()
   @BeforeUpdate()
   normalizeNames() {
@@ -78,5 +89,3 @@ export class User {
       this.second_last_name = toTitleCase(this.second_last_name);
   }
 }
-
-//TODO: EN GEMINI TENGO INFORMACION RESPECTO A LA VALIDACION DE DISPOSITIVO UNICO.

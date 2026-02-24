@@ -8,9 +8,16 @@ import {
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
+import { PublicAccess } from 'src/common/decorators';
 
 @ApiBearerAuth('access-token')
+@PublicAccess()
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}
@@ -21,6 +28,7 @@ export class RoleController {
     description:
       'Actualiza completamente los permisos asociados a un rol específico.',
   })
+  @ApiOkResponse({})
   async syncPermissions(@Body() dto: UpdateRolePermissions) {
     return await this.roleService.syncPermissions(dto);
   }
@@ -29,11 +37,13 @@ export class RoleController {
   @ApiOperation({
     summary: 'obtener un rol con sus sus permisos',
   })
+  @ApiOkResponse({})
+  @ApiNotFoundResponse({ description: 'Rol no encontrado' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const roles = await this.roleService.find({
+    const [role] = await this.roleService.find({
       ids: [id],
       withPermissions: true,
     });
-    return roles[0];
+    return role;
   }
 }

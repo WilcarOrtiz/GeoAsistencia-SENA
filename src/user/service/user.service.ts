@@ -21,9 +21,9 @@ import {
   UserMeResponseDto,
 } from '../dto';
 
-import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { User } from '../entities/user.entity';
 import { UserProfileService } from './user-profile.service';
+import { Role } from 'src/access-control-module/roles/entities/role.entity';
 
 @Injectable()
 export class UserService {
@@ -31,12 +31,48 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly authService: AuthService,
-    private userProfileService: UserProfileService,
     private readonly rolesService: RolesService,
     private readonly menuService: MenuService,
+    private userProfileService: UserProfileService,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto) {
+  private baseUserQuery() {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('user.student', 'student')
+      .leftJoinAndSelect('user.teacher', 'teacher');
+  }
+
+  private activeUserWithPermissionsQuery(authId: string) {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'role')
+      .leftJoinAndSelect('role.permissions', 'permission')
+      .leftJoinAndSelect('user.student', 'student', 'student.is_active = true')
+      .leftJoinAndSelect('user.teacher', 'teacher', 'teacher.is_active = true')
+      .where('user.auth_id = :authId', { authId })
+      .andWhere('user.is_active = true');
+  }
+
+  private async ensureUserIdNotTaken(ID: string, excludeAuthId?: string) {
+    const existing = await this.userRepo.findOneBy({ ID_user: ID });
+    if (existing && existing.auth_id !== excludeAuthId) {
+      throw new BadRequestException(
+        `Ya existe un usuario con el documento ${ID}`,
+      );
+    }
+  }
+
+  private async findAndValidateRoles(rolesID: string[]): Promise<Role[]> {
+    const roles = await this.rolesService.find({ ids: rolesID });
+    if (roles.length !== rolesID.length) {
+      throw new BadRequestException('Algún rol no es válido');
+    }
+    return roles;
+  }
+
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
     const {
       ID,
       email,
@@ -47,20 +83,8 @@ export class UserService {
       second_last_name,
     } = createUserDto;
 
-    const existingUser = await this.userRepo.findOneBy({
-      ID_user: ID,
-    });
-    if (existingUser) {
-      throw new BadRequestException(
-        `Ya existe un usuario con el documento ${ID}`,
-      );
-    }
-
-    const roles = await this.rolesService.find({ ids: rolesID });
-    if (roles.length !== rolesID.length) {
-      throw new BadRequestException('Roles válidos');
-    }
-
+    await this.ensureUserIdNotTaken(ID);
+    const roles = await this.findAndValidateRoles(rolesID);
     const userIdAuth = await this.authService.createUserCredentials(email, ID);
 
     return await this.userRepo.manager.transaction(
@@ -94,16 +118,9 @@ export class UserService {
   }
 
   async update(auth_id: string, updateUserDto: UpdateUserDto) {
-    if (updateUserDto.ID) {
-      const existing = await this.userRepo.findOneBy({
-        ID_user: updateUserDto.ID,
-      });
-      if (existing && existing.auth_id !== auth_id) {
-        throw new BadRequestException(
-          'Ya existe un usuario con ese número de identificación',
-        );
-      }
-    }
+    if (updateUserDto.ID)
+      await this.ensureUserIdNotTaken(updateUserDto.ID, auth_id);
+
     const user = await this.userRepo.preload({
       auth_id,
       ...updateUserDto,
@@ -111,7 +128,6 @@ export class UserService {
 
     if (!user) throw new NotFoundException(`Usuario no encontrado`);
     if (!user.is_active) throw new BadRequestException(` usuario inactivo`);
-
     return this.userRepo.save(user);
   }
 
@@ -122,25 +138,18 @@ export class UserService {
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const newRoles = await this.rolesService.find({ ids: rolesID });
-    if (newRoles.length !== rolesID.length)
-      throw new BadRequestException('Algún rol no válido');
+    const newRoles = await this.findAndValidateRoles(rolesID);
 
     return this.userRepo.manager.transaction(async (manager) => {
       user.roles = newRoles;
       const savedUser = await manager.save(user);
-      await this.userProfileService.syncProfiles(manager, id, newRoles); // ← limpio
+      await this.userProfileService.syncProfiles(manager, id, newRoles);
       return savedUser;
     });
   }
 
-  async findOne(term: string, accessCriteria: AccessCriteria) {
-    const qb = this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'roles')
-      .leftJoinAndSelect('user.student', 'student')
-      .leftJoinAndSelect('user.teacher', 'teacher');
-
+  async findOne(term: string, accessCriteria: AccessCriteria): Promise<User> {
+    const qb = this.baseUserQuery();
     if (isUUID(term)) {
       qb.where('user.auth_id = :auth_id', { auth_id: term });
     } else {
@@ -154,11 +163,7 @@ export class UserService {
     }
 
     const user = await qb.getOne();
-
-    if (!user) {
-      throw new NotFoundException(`Usuario con "${term}" no encontrado`);
-    }
-
+    if (!user) throw new NotFoundException(`Usuario "${term}" no encontrado`);
     return user;
   }
 
@@ -167,12 +172,7 @@ export class UserService {
     accessCriteria: AccessCriteria,
   ) {
     const { limit = 10, offset = 0, roleId } = findAllUsersDto;
-
-    const qb = this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'roles')
-      .leftJoinAndSelect('user.student', 'student')
-      .leftJoinAndSelect('user.teacher', 'teacher');
+    const qb = this.baseUserQuery();
 
     if (accessCriteria.is_active !== undefined) {
       qb.andWhere('user.is_active = :isActive', {
@@ -180,12 +180,9 @@ export class UserService {
       });
     }
 
-    if (roleId) {
-      qb.andWhere('roles.id = :roleId', { roleId });
-    }
+    if (roleId) qb.andWhere('roles.id = :roleId', { roleId });
 
     qb.orderBy('user.created_at', 'DESC');
-
     const [users, total] = await qb.take(limit).skip(offset).getManyAndCount();
 
     return {
@@ -196,7 +193,7 @@ export class UserService {
     };
   }
 
-  async setStatus(id: string, status: boolean) {
+  async setStatus(id: string, status: boolean): Promise<User> {
     const user = await this.userRepo.findOneBy({ auth_id: id });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     if (user.is_active === status)
@@ -244,7 +241,7 @@ export class UserService {
     };
   }
 
-  async deleteAllUser(manager?: EntityManager) {
+  async deleteAllUser(manager?: EntityManager): Promise<{ message: string }> {
     const repo = manager ? manager.getRepository(User) : this.userRepo;
 
     try {
@@ -264,25 +261,10 @@ export class UserService {
   }
 
   async validateActiveUserByAuthId(authId: string) {
-    const user = await this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'role')
-      .leftJoinAndSelect('role.permissions', 'permission')
-      .leftJoinAndSelect('user.student', 'student', 'student.is_active = true')
-      .leftJoinAndSelect('user.teacher', 'teacher', 'teacher.is_active = true')
-      .where('user.auth_id = :authId', { authId })
-      .andWhere('user.is_active = true')
-      .getOne();
-
+    const user = await this.activeUserWithPermissionsQuery(authId).getOne();
     if (!user) return null;
 
-    const rolesValidos = user.roles.filter((role) => {
-      const name = role.name.toUpperCase() as ValidRole;
-      if (name === ValidRole.STUDENT) return !!user.student;
-      if (name === ValidRole.TEACHER) return !!user.teacher;
-      return true;
-    });
-
+    const rolesValidos = this.rolesService.validateRolesIntegrity(user);
     const { names, ids } = this.rolesService.getUniquePermissions(rolesValidos);
 
     return {
@@ -293,21 +275,3 @@ export class UserService {
     };
   }
 }
-
-/*  async validateActiveUserByAuthIdd(authId: string) {
-    const user = await this.userRepo.findOne({
-      where: { auth_id: authId, is_active: true },
-      relations: { roles: { permissions: true } },
-    });
-
-    if (!user) return null;
-
-    const { names, ids } = this.rolesService.getUniquePermissions(user.roles);
-
-    return {
-      ...user,
-      processedPermissions: names,
-      processedPermissionIds: ids,
-    };
-  }
- */

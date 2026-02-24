@@ -14,7 +14,7 @@ export class MenuService {
     private readonly permissionService: PermissionsService,
   ) {}
 
-  private getRepo(manager?: EntityManager) {
+  private getRepo(manager?: EntityManager): Repository<Menu> {
     return manager ? manager.getRepository(Menu) : this.menuRepository;
   }
 
@@ -81,12 +81,8 @@ export class MenuService {
       const hasDirectPermission =
         !menu.permission || permissionIds.includes(menu.permission.id);
 
-      // ¿Tiene hijos permitidos?
       const hasAllowedChildren = children.length > 0;
 
-      // EL FILTRO CLAVE:
-      // El menú se incluye si (Tiene permiso directo O tiene hijos permitidos)
-      // Y además (Tiene una ruta O tiene hijos) -> para evitar carpetas vacías
       if (hasDirectPermission || hasAllowedChildren) {
         if (menu.route || hasAllowedChildren) {
           tree.push({
@@ -104,7 +100,7 @@ export class MenuService {
     return tree;
   }
 
-  async deleteAll(manager?: EntityManager) {
+  async deleteAll(manager?: EntityManager): Promise<void> {
     await this.getRepo(manager)
       .createQueryBuilder()
       .delete()
