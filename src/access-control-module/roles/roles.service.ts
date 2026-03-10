@@ -4,16 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EntityManager, In, Repository } from 'typeorm';
-import { Role } from './entities/role.entity';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
-import { IRoleSystemCreate } from './interface/role-system.interface';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Permission } from '../permissions/entities/permission.entity';
 import { User } from 'src/user/entities/user.entity';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
-import { RoleResponseDto } from './dto/role-response.dto';
+import { FindRoleOptions, IRoleSystemCreate } from './interface';
+import { Role } from './entities/role.entity';
 
 @Injectable()
 export class RolesService {
@@ -32,10 +31,10 @@ export class RolesService {
     manager?: EntityManager,
   ): Promise<Role> {
     const repo = this.getRepo(manager);
-    const { name, description } = body;
+    const { name, description, permissions } = body;
 
     const permissionsDB = await this.permissionService.find({
-      names: body.permissions,
+      names: permissions,
       manager,
     });
 
@@ -48,13 +47,26 @@ export class RolesService {
     return await repo.save(newRole);
   }
 
-  async syncPermissions(dto: UpdateRolePermissions): Promise<RoleResponseDto> {
+  async syncPermissionss(dto: UpdateRolePermissions) {
     const { roleId, permissionIds } = dto;
     const [role] = await this.find({ ids: [roleId], withPermissions: true });
     role.permissions = permissionIds.map((id) => ({ id }) as Permission);
     return await this.roleRepo.save(role);
   }
 
+  async syncPermissions(dto: UpdateRolePermissions): Promise<Role> {
+    const { roleId, permissionIds } = dto;
+    const [role] = await this.find({ ids: [roleId], withPermissions: true });
+    role.permissions = permissionIds.map((id) => ({ id }) as Permission);
+    await this.roleRepo.save(role);
+
+    const [updatedRole] = await this.find({
+      ids: [roleId],
+      withPermissions: true,
+    });
+
+    return updatedRole;
+  }
   getUniquePermissions(roles: Role[]): { names: string[]; ids: string[] } {
     const allPermissions = roles.flatMap((r) => r.permissions ?? []);
     return {
@@ -76,12 +88,7 @@ export class RolesService {
     }
   }
 
-  async find(options: {
-    ids?: string[];
-    withPermissions?: boolean;
-    pagination?: PaginationDto;
-    manager?: EntityManager;
-  }): Promise<Role[]> {
+  async find(options: FindRoleOptions): Promise<Role[]> {
     const { ids, withPermissions = false, pagination, manager } = options;
     const repo = this.getRepo(manager);
 

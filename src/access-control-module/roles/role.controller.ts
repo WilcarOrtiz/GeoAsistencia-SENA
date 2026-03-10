@@ -6,15 +6,13 @@ import {
   ParseUUIDPipe,
   Patch,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+
 import { RolesService } from './roles.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
-import {
-  ApiBearerAuth,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
 import { PublicAccess } from 'src/common/decorators';
+import { RoleResponseDto } from './dto/roles-response.dto';
 
 @ApiBearerAuth('access-token')
 @PublicAccess()
@@ -25,25 +23,34 @@ export class RoleController {
   @Patch('sync-permissions')
   @ApiOperation({
     summary: 'Sincronización de permisos de un rol',
-    description:
-      'Actualiza completamente los permisos asociados a un rol específico.',
+    description: 'Actualiza los permisos de un rol.',
   })
-  @ApiOkResponse({})
-  async syncPermissions(@Body() dto: UpdateRolePermissions) {
-    return await this.roleService.syncPermissions(dto);
+  @ApiOkResponse({ type: RoleResponseDto })
+  async syncPermissions(
+    @Body() dto: UpdateRolePermissions,
+  ): Promise<RoleResponseDto> {
+    const role = await this.roleService.syncPermissions(dto);
+
+    return plainToInstance(RoleResponseDto, role, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'obtener un rol con sus sus permisos',
+    summary: 'obtener rol junto a sus permisos',
   })
-  @ApiOkResponse({})
-  @ApiNotFoundResponse({ description: 'Rol no encontrado' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  @ApiOkResponse({ type: RoleResponseDto })
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<RoleResponseDto> {
     const [role] = await this.roleService.find({
       ids: [id],
       withPermissions: true,
     });
-    return role;
+
+    return plainToInstance(RoleResponseDto, role, {
+      excludeExtraneousValues: true,
+    });
   }
 }

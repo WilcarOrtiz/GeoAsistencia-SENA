@@ -12,11 +12,12 @@ import {
 import { SemesterService } from './semester.service';
 
 import { PublicAccess } from 'src/common/decorators';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import {
   ChangeSemesterStateDto,
   CreateSemesterDto,
+  SemesterResponseDto,
   UpdateSemesterDto,
 } from './dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
@@ -30,7 +31,10 @@ export class SemesterController {
   @ApiOperation({
     summary: 'Crear semestre',
   })
-  create(@Body() createSemesterDto: CreateSemesterDto) {
+  @ApiOkResponse({ type: SemesterResponseDto })
+  create(
+    @Body() createSemesterDto: CreateSemesterDto,
+  ): Promise<SemesterResponseDto> {
     return this.semesterService.create(createSemesterDto);
   }
 
@@ -40,10 +44,11 @@ export class SemesterController {
     description:
       'Actualizar la informacion base de un semestre un nuevo semestre en el sistema.',
   })
+  @ApiOkResponse({ type: SemesterResponseDto })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateSemesterDto: UpdateSemesterDto,
-  ) {
+  ): Promise<SemesterResponseDto> {
     return this.semesterService.update(id, updateSemesterDto);
   }
 
@@ -53,10 +58,11 @@ export class SemesterController {
     type: ChangeSemesterStateDto,
     description: 'Nuevo estado que se asignará al semestre',
   })
+  @ApiOkResponse({ type: SemesterResponseDto })
   changeState(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ChangeSemesterStateDto,
-  ) {
+  ): Promise<SemesterResponseDto> {
     return this.semesterService.changeState(id, dto.state);
   }
 
@@ -66,7 +72,8 @@ export class SemesterController {
     description:
       'Obtiene un semestre en base a un termino de busqueda (code, id).',
   })
-  findOne(@Param('term') term: string) {
+  @ApiOkResponse({ type: SemesterResponseDto })
+  findOne(@Param('term') term: string): Promise<SemesterResponseDto> {
     return this.semesterService.findOne(term);
   }
 
@@ -74,7 +81,10 @@ export class SemesterController {
   @ApiOperation({
     summary: 'Listar semestres',
   })
-  findAll(@Query() paginationDto: PaginationDto) {
+  @ApiOkResponse({ type: [SemesterResponseDto] })
+  findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<SemesterResponseDto[]> {
     return this.semesterService.findAll(paginationDto);
   }
 
@@ -83,7 +93,8 @@ export class SemesterController {
     summary: 'Eliminar semestre',
     description: 'Elimina LOGICAMENTE el semestre del sistema',
   })
-  remove(@Param('id') id: string) {
+  @ApiOkResponse({ type: SemesterResponseDto })
+  remove(@Param('id') id: string): Promise<SemesterResponseDto> {
     return this.semesterService.remove(id);
   }
 }

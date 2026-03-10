@@ -3,6 +3,8 @@ import { PermissionsService } from './permissions.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { PublicAccess } from 'src/common/decorators';
+import { PermissionResponseDto } from './dto/permission-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @ApiBearerAuth('access-token')
 @PublicAccess()
@@ -16,11 +18,20 @@ export class PermissionsController {
     description:
       'Obtiene un listado paginado de permisos, incluyendo sus roles asociados, para ser utilizados en una vista tipo matriz (roles vs permisos).',
   })
-  @ApiOkResponse({})
-  findAllForMatrix(@Query() paginationDto: PaginationDto) {
-    return this.permissionsService.find({
+  @ApiOkResponse({
+    type: [PermissionResponseDto],
+  })
+  async findAllForMatrix(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PermissionResponseDto[]> {
+    const permissions = await this.permissionsService.find({
       pagination: paginationDto,
       withRoles: true,
+    });
+
+    return plainToInstance(PermissionResponseDto, permissions, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
     });
   }
 }

@@ -207,7 +207,7 @@ export class UserService {
   async getUserProfile(id: string): Promise<UserMeResponseDto> {
     const dbUser = await this.validateActiveUserByAuthId(id);
     if (!dbUser) throw new NotFoundException('Usuario no encontrado');
-    const navigation = await this.menuService.findMenusByPermissions(
+    const navigation = await this.menuService.getMenuTreeByPermissions(
       dbUser.processedPermissionIds,
     );
 

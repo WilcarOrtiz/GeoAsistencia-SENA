@@ -21,7 +21,7 @@ export class SeedService {
       await this.userService.deleteAllUser(manager);
       await this.menuService.deleteAll(manager);
       await this.rolesService.deleteAllRoles(manager);
-      await this.permissionService.deleteAllPermissions(manager);
+      await this.permissionService.deleteAll(manager);
 
       for (const permission of initialData.permissions) {
         await this.permissionService.create(permission, manager);

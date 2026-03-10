@@ -10,6 +10,7 @@ import {
 import { Permission } from '../../permissions/entities/permission.entity';
 import { User } from 'src/user/entities/user.entity';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
+import { Exclude } from 'class-transformer';
 
 @Entity('ROLES')
 export class Role {
@@ -49,9 +50,11 @@ export class Role {
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
+  @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 }

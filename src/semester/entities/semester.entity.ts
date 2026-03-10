@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { ClassGroup } from 'src/class_groups/entities/class_group.entity';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 import {
@@ -65,9 +66,11 @@ export class Semester {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
+  @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 

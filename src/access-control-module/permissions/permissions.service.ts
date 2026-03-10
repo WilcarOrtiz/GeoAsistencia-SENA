@@ -3,8 +3,7 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Permission } from './entities/permission.entity';
 import { IPermissionSystemCreate } from './interface/permission-system.interface';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DeleteResult } from 'typeorm/browser';
+import { FindPermissionsOptions } from './interface/find-permissions-options.interface';
 
 @Injectable()
 export class PermissionsService {
@@ -26,17 +25,7 @@ export class PermissionsService {
     return await repo.save(permission);
   }
 
-  async deleteAllPermissions(manager?: EntityManager): Promise<DeleteResult> {
-    const repo = this.getRepo(manager);
-    return await repo.createQueryBuilder().delete().where({}).execute();
-  }
-
-  async find(options: {
-    names?: string[];
-    pagination?: PaginationDto;
-    withRoles?: boolean;
-    manager?: EntityManager;
-  }): Promise<Permission[]> {
+  async find(options: FindPermissionsOptions): Promise<Permission[]> {
     const { names, pagination, withRoles = false, manager } = options;
     const repo = this.getRepo(manager);
 
@@ -49,5 +38,11 @@ export class PermissionsService {
         name: 'ASC',
       },
     });
+  }
+
+  //todo: SEED
+  async deleteAll(manager?: EntityManager): Promise<void> {
+    const repo = this.getRepo(manager);
+    await repo.createQueryBuilder().delete().where({}).execute();
   }
 }

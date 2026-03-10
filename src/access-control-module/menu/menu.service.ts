@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Menu } from './entities/menu.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+
 import { PermissionsService } from '../permissions/permissions.service';
+import { Menu } from './entities/menu.entity';
 import { IMenuSystemCreate } from './interface/menu-system.interface';
 import { NavigationItemDto } from 'src/user/dto/user-me-response.dto';
 
@@ -18,7 +19,10 @@ export class MenuService {
     return manager ? manager.getRepository(Menu) : this.menuRepository;
   }
 
-  async create(createMenuDto: IMenuSystemCreate, manager?: EntityManager) {
+  async create(
+    createMenuDto: IMenuSystemCreate,
+    manager?: EntityManager,
+  ): Promise<Menu> {
     const repo = this.getRepo(manager);
     const [permission] = await this.permissionService.find({
       names: [createMenuDto.permission_name],
@@ -51,17 +55,15 @@ export class MenuService {
     return await repo.save(newMenu);
   }
 
-  async findMenusByPermissions(
+  async getMenuTreeByPermissions(
     permissionIds: string[],
     manager?: EntityManager,
   ): Promise<NavigationItemDto[]> {
     const repo = this.getRepo(manager);
-
     const allMenus = await repo.find({
       relations: ['permission'],
       order: { order_index: 'ASC' },
     });
-
     return this.buildTree(allMenus, permissionIds, null);
   }
 
@@ -101,6 +103,7 @@ export class MenuService {
   }
 
   async deleteAll(manager?: EntityManager): Promise<void> {
+    //todo: SEED
     await this.getRepo(manager)
       .createQueryBuilder()
       .delete()
