@@ -11,7 +11,6 @@ import { RolesService } from '../../access-control-module/roles/roles.service';
 import { AuthService } from 'src/auth/auth.service';
 import { MenuService } from '../../access-control-module/menu/menu.service';
 
-import { isUUID } from 'class-validator';
 import { AccessCriteria } from 'src/common/decorators/get-access-criteria.decorator';
 import {
   CreateUserDto,
@@ -24,6 +23,7 @@ import {
 import { User } from '../entities/user.entity';
 import { UserProfileService } from './user-profile.service';
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
+import { ICurrentUser } from 'src/common/interface/current-user.interface';
 
 @Injectable()
 export class UserService {
@@ -36,12 +36,22 @@ export class UserService {
     private userProfileService: UserProfileService,
   ) {}
 
-  private baseUserQuery() {
+  private baseListQuery() {
     return this.userRepo
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'roles')
-      .leftJoinAndSelect('user.student', 'student')
-      .leftJoinAndSelect('user.teacher', 'teacher');
+      .leftJoin('user.roles', 'roles')
+      .select([
+        'user.auth_id',
+        'user.ID_user',
+        'user.first_name',
+        'user.middle_name',
+        'user.last_name',
+        'user.second_last_name',
+        'user.is_active',
+        'user.created_at',
+        'roles.id',
+        'roles.name',
+      ]);
   }
 
   private activeUserWithPermissionsQuery(authId: string) {
@@ -55,21 +65,13 @@ export class UserService {
       .andWhere('user.is_active = true');
   }
 
-  private async ensureUserIdNotTaken(ID: string, excludeAuthId?: string) {
-    const existing = await this.userRepo.findOneBy({ ID_user: ID });
-    if (existing && existing.auth_id !== excludeAuthId) {
+  private async validateUniqueUserId(ID: string, excludeAuthId?: string) {
+    const user = await this.userRepo.findOneBy({ ID_user: ID });
+    if (user && user.auth_id !== excludeAuthId) {
       throw new BadRequestException(
-        `Ya existe un usuario con el documento ${ID}`,
+        `A user with the document already exists ${ID}`,
       );
     }
-  }
-
-  private async findAndValidateRoles(rolesID: string[]): Promise<Role[]> {
-    const roles = await this.rolesService.find({ ids: rolesID });
-    if (roles.length !== rolesID.length) {
-      throw new BadRequestException('Algún rol no es válido');
-    }
-    return roles;
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -83,8 +85,8 @@ export class UserService {
       second_last_name,
     } = createUserDto;
 
-    await this.ensureUserIdNotTaken(ID);
-    const roles = await this.findAndValidateRoles(rolesID);
+    await this.validateUniqueUserId(ID);
+    const roles = await this.rolesService.find({ ids: rolesID });
     const userIdAuth = await this.authService.createUserCredentials(email, ID);
 
     return await this.userRepo.manager.transaction(
@@ -117,9 +119,9 @@ export class UserService {
     );
   }
 
-  async update(auth_id: string, updateUserDto: UpdateUserDto) {
+  async update(auth_id: string, updateUserDto: UpdateUserDto): Promise<User> {
     if (updateUserDto.ID)
-      await this.ensureUserIdNotTaken(updateUserDto.ID, auth_id);
+      await this.validateUniqueUserId(updateUserDto.ID, auth_id);
 
     const user = await this.userRepo.preload({
       auth_id,
@@ -131,48 +133,37 @@ export class UserService {
     return this.userRepo.save(user);
   }
 
-  async updateRoles(id: string, { rolesID }: UpdateRolesUserDto) {
+  async updateRoles(
+    id: string,
+    { rolesID }: UpdateRolesUserDto,
+  ): Promise<Role[]> {
     const user = await this.userRepo.findOne({
       where: { auth_id: id },
       relations: ['roles'],
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const newRoles = await this.findAndValidateRoles(rolesID);
+    const newRoles = await this.rolesService.find({ ids: rolesID });
 
     return this.userRepo.manager.transaction(async (manager) => {
       user.roles = newRoles;
-      const savedUser = await manager.save(user);
+      await manager.save(user);
       await this.userProfileService.syncProfiles(manager, id, newRoles);
-      return savedUser;
+      return newRoles;
     });
-  }
-
-  async findOne(term: string, accessCriteria: AccessCriteria): Promise<User> {
-    const qb = this.baseUserQuery();
-    if (isUUID(term)) {
-      qb.where('user.auth_id = :auth_id', { auth_id: term });
-    } else {
-      qb.where('user.ID_user = :idUser', { idUser: term });
-    }
-
-    if (accessCriteria.is_active !== undefined) {
-      qb.andWhere('user.is_active = :isActive', {
-        isActive: accessCriteria.is_active,
-      });
-    }
-
-    const user = await qb.getOne();
-    if (!user) throw new NotFoundException(`Usuario "${term}" no encontrado`);
-    return user;
   }
 
   async findAll(
     findAllUsersDto: FindAllUsersDto,
     accessCriteria: AccessCriteria,
-  ) {
+  ): Promise<{
+    data: User[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
     const { limit = 10, offset = 0, roleId } = findAllUsersDto;
-    const qb = this.baseUserQuery();
+    const qb = this.baseListQuery();
 
     if (accessCriteria.is_active !== undefined) {
       qb.andWhere('user.is_active = :isActive', {
@@ -193,52 +184,19 @@ export class UserService {
     };
   }
 
-  async setStatus(id: string, status: boolean): Promise<User> {
+  async setStatus(
+    id: string,
+    status: boolean,
+  ): Promise<{ is_active: boolean }> {
     const user = await this.userRepo.findOneBy({ auth_id: id });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     if (user.is_active === status)
       throw new BadRequestException(
         `El usuario ya está ${status ? 'activo' : 'inactivo'}`,
       );
-    user.is_active = status;
-    return this.userRepo.save(user);
-  }
 
-  async getUserProfile(id: string): Promise<UserMeResponseDto> {
-    const dbUser = await this.validateActiveUserByAuthId(id);
-    if (!dbUser) throw new NotFoundException('Usuario no encontrado');
-    const navigation = await this.menuService.getMenuTreeByPermissions(
-      dbUser.processedPermissionIds,
-    );
-
-    const fullName = [
-      dbUser.first_name,
-      dbUser.middle_name,
-      dbUser.last_name,
-      dbUser.second_last_name,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    return {
-      user: {
-        id: dbUser.ID_user,
-        authId: dbUser.auth_id,
-        firstName: dbUser.first_name,
-        middleName: dbUser.middle_name,
-        lastName: dbUser.last_name,
-        secondLastName: dbUser.second_last_name,
-        fullName,
-        isActive: dbUser.is_active,
-      },
-      roles: dbUser.roles.map((role) => ({
-        id: role.id,
-        name: role.name,
-        description: role.description,
-      })),
-      permissions: dbUser.processedPermissions,
-      navigation,
-    };
+    await this.userRepo.update({ auth_id: id }, { is_active: status });
+    return { is_active: status };
   }
 
   async deleteAllUser(manager?: EntityManager): Promise<{ message: string }> {
@@ -260,15 +218,33 @@ export class UserService {
     }
   }
 
+  async getUserProfile(currentUser: ICurrentUser): Promise<UserMeResponseDto> {
+    const navigation = await this.menuService.getMenuTreeByPermissions(
+      currentUser.permissionIds,
+    );
+
+    return {
+      user: {
+        id: currentUser.ID_user,
+        authId: currentUser.authId,
+        fullName: currentUser.fullName,
+        isActive: currentUser.is_active,
+      },
+      roles: currentUser.roles,
+      permissions: currentUser.permissions,
+      navigation,
+    };
+  }
+
   async validateActiveUserByAuthId(authId: string) {
     const user = await this.activeUserWithPermissionsQuery(authId).getOne();
     if (!user) return null;
 
-    const rolesValidos = this.rolesService.validateRolesIntegrity(user);
+    const rolesValidos = user.getValidRoles();
     const { names, ids } = this.rolesService.getUniquePermissions(rolesValidos);
 
     return {
-      ...user,
+      user: user,
       roles: rolesValidos,
       processedPermissions: names,
       processedPermissionIds: ids,

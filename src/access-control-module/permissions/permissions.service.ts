@@ -40,7 +40,6 @@ export class PermissionsService {
     });
   }
 
-  //todo: SEED
   async deleteAll(manager?: EntityManager): Promise<void> {
     const repo = this.getRepo(manager);
     await repo.createQueryBuilder().delete().where({}).execute();

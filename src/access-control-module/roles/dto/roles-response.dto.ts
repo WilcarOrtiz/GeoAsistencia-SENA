@@ -3,6 +3,16 @@ import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { PermissionSimpleResponseDto } from '../../permissions/dto/permission-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
+export class RoleListItemDto {
+  @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
+  @Expose()
+  id: string;
+
+  @ApiProperty({ enum: ValidRole, example: ValidRole.STUDENT })
+  @Expose()
+  name: ValidRole;
+}
+
 export class RoleSimpleResponseDto {
   @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
   @Expose()

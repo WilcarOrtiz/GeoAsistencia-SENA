@@ -1,4 +1,5 @@
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
+import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { toTitleCase } from 'src/common/utils/string-format.util';
 import { Student } from 'src/student/entities/student.entity';
 import { Teacher } from 'src/teacher/entities/teacher.entity';
@@ -77,6 +78,20 @@ export class User {
     ]
       .filter(Boolean)
       .join(' ');
+  }
+
+  getValidRoles(): Role[] {
+    return this.roles.filter((role) => {
+      const name = role.name.toUpperCase() as ValidRole;
+
+      if (name === ValidRole.STUDENT)
+        return !!this.student && this.student.is_active;
+
+      if (name === ValidRole.TEACHER)
+        return !!this.teacher && this.teacher.is_active;
+
+      return true;
+    });
   }
 
   @BeforeInsert()

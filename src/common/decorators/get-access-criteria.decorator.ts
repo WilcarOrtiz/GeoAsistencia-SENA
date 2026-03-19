@@ -18,8 +18,9 @@ export const GetAccessCriteria = createParamDecorator(
     const roles = user?.roles || [];
 
     if (
-      roles.includes(ValidRole.ADMIN) ||
-      roles.includes(ValidRole.SUPER_ADMIN)
+      roles.some(
+        (r) => r.name === ValidRole.ADMIN || r.name === ValidRole.SUPER_ADMIN,
+      )
     )
       return {};
 

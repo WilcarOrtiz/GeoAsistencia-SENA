@@ -31,10 +31,9 @@ export class PermissionsGuard implements CanActivate {
 
     const { roles = [], permissions = [] } = user;
     const elevatedRoles = new Set([ValidRole.SUPER_ADMIN, ValidRole.ADMIN]);
-    if (roles.some((role) => elevatedRoles.has(role))) return true;
 
+    if (roles.some((r) => elevatedRoles.has(r.name))) return true;
     const permissionSet = new Set(permissions);
-
     const missingPermissions = requiredPermissions.filter(
       (perm) => !permissionSet.has(perm),
     );

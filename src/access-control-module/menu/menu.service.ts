@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Menu } from './entities/menu.entity';
 import { IMenuSystemCreate } from './interface/menu-system.interface';
-import { NavigationItemDto } from 'src/user/dto/user-me-response.dto';
+import { NavigationItemDto } from './dto/menu-response.dto';
 
 @Injectable()
 export class MenuService {
@@ -103,7 +103,6 @@ export class MenuService {
   }
 
   async deleteAll(manager?: EntityManager): Promise<void> {
-    //todo: SEED
     await this.getRepo(manager)
       .createQueryBuilder()
       .delete()

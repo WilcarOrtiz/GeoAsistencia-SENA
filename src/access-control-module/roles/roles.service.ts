@@ -9,8 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { Permission } from '../permissions/entities/permission.entity';
-import { User } from 'src/user/entities/user.entity';
-import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { FindRoleOptions, IRoleSystemCreate } from './interface';
 import { Role } from './entities/role.entity';
 
@@ -47,13 +45,6 @@ export class RolesService {
     return await repo.save(newRole);
   }
 
-  async syncPermissionss(dto: UpdateRolePermissions) {
-    const { roleId, permissionIds } = dto;
-    const [role] = await this.find({ ids: [roleId], withPermissions: true });
-    role.permissions = permissionIds.map((id) => ({ id }) as Permission);
-    return await this.roleRepo.save(role);
-  }
-
   async syncPermissions(dto: UpdateRolePermissions): Promise<Role> {
     const { roleId, permissionIds } = dto;
     const [role] = await this.find({ ids: [roleId], withPermissions: true });
@@ -67,6 +58,7 @@ export class RolesService {
 
     return updatedRole;
   }
+
   getUniquePermissions(roles: Role[]): { names: string[]; ids: string[] } {
     const allPermissions = roles.flatMap((r) => r.permissions ?? []);
     return {
@@ -106,19 +98,5 @@ export class RolesService {
       throw new NotFoundException('One or more roles were not found');
     }
     return roles;
-  }
-
-  validateRolesIntegrity(user: User): Role[] {
-    return user.roles.filter((role) => {
-      const name = role.name.toUpperCase() as ValidRole;
-
-      if (name === ValidRole.STUDENT)
-        return !!user.student && user.student.is_active;
-
-      if (name === ValidRole.TEACHER)
-        return !!user.teacher && user.teacher.is_active;
-
-      return true;
-    });
   }
 }
