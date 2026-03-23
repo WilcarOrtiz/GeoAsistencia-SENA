@@ -6,8 +6,8 @@ import {
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
-import { ClassGroup } from 'src/class_groups/entities';
 import { User } from 'src/user/entities/user.entity';
+import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.entity';
 
 @Entity('TEACHERS')
 export class Teacher {

@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { RoleListItemDto } from 'src/access-control-module/roles/dto/roles-response.dto';
 import { NavigationItemDto } from 'src/access-control-module/menu/dto/menu-response.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 
 export class UserBaseResponseDto {
   @ApiProperty({ example: 'b0ac854b-7d66-4e74-a593-e50494161ab0' })
@@ -44,18 +45,11 @@ export class UserResponseWithRolesDto extends UserBaseResponseDto {
   roles: RoleListItemDto[];
 }
 
-export class PaginatedUserResponseDto {
+export class PaginatedUserResponseDto extends PaginatedResponseDto<UserResponseWithRolesDto> {
+  @Expose()
+  @Type(() => UserResponseWithRolesDto)
   @ApiProperty({ type: [UserResponseWithRolesDto] })
-  items: UserResponseWithRolesDto[];
-
-  @ApiProperty({ example: 50 })
-  total: number;
-
-  @ApiProperty({ example: 10 })
-  limit: number;
-
-  @ApiProperty({ example: 0 })
-  offset: number;
+  declare data: UserResponseWithRolesDto[];
 }
 
 export class UserMeUserDto {

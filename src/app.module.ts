@@ -7,12 +7,9 @@ import { AccessControlModuleModule } from './access-control-module/access-contro
 import { UserModule } from './user/user.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
-import { SemesterModule } from './semester/semester.module';
-import { SubjectsModule } from './subjects/subjects.module';
-import { ClassGroupsModule } from './class_groups/class_groups.module';
-import { AttendanceModule } from './attendance-module/attendance-module.module';
 import { StudentModule } from './student/student.module';
 import { TeacherModule } from './teacher/teacher.module';
+import { ClassGroupModule } from './class-group/class-group.module';
 
 @Module({
   imports: [
@@ -32,12 +29,9 @@ import { TeacherModule } from './teacher/teacher.module';
     UserModule,
     SupabaseModule,
     AuthModule,
-    SemesterModule,
-    SubjectsModule,
-    ClassGroupsModule,
-    AttendanceModule,
     StudentModule,
     TeacherModule,
+    ClassGroupModule,
   ],
   providers: [],
 })

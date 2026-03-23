@@ -1,21 +1,37 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 
 export class PaginationDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsPositive()
   @IsNumber()
   @Min(1)
   @Type(() => Number)
-  limit?: number;
+  page?: number = 1;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 10 })
   @IsOptional()
-  @IsPositive()
   @IsNumber()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
-  offset?: number;
+  limit?: number = 10;
+}
+
+export class PaginatedResponseDto<T> {
+  @ApiProperty({ isArray: true })
+  @Expose()
+  data: T[];
+
+  @ApiProperty({ example: 50 })
+  @Expose()
+  total: number;
+
+  @ApiProperty({ example: 10 })
+  @Expose()
+  limit: number;
+
+  @ApiProperty({ example: 1 })
+  @Expose()
+  page: number;
 }

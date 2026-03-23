@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -24,6 +23,7 @@ import { User } from '../entities/user.entity';
 import { UserProfileService } from './user-profile.service';
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { ICurrentUser } from 'src/common/interface/current-user.interface';
+import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class UserService {
@@ -86,12 +86,14 @@ export class UserService {
     } = createUserDto;
 
     await this.validateUniqueUserId(ID);
-    const roles = await this.rolesService.find({ ids: rolesID });
+
     const userIdAuth = await this.authService.createUserCredentials(email, ID);
 
     return await this.userRepo.manager.transaction(
       async (manager: EntityManager) => {
         try {
+          const roles = await this.rolesService.findByIds(rolesID, manager);
+
           const user = manager.create(User, {
             auth_id: userIdAuth,
             ID_user: ID,
@@ -139,30 +141,43 @@ export class UserService {
   ): Promise<Role[]> {
     const user = await this.userRepo.findOne({
       where: { auth_id: id },
-      relations: ['roles'],
     });
+
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const newRoles = await this.rolesService.find({ ids: rolesID });
-
     return this.userRepo.manager.transaction(async (manager) => {
-      user.roles = newRoles;
-      await manager.save(user);
+      const newRoles = await this.rolesService.findByIds(rolesID, manager);
+
+      const currentRoles = await manager
+        .createQueryBuilder()
+        .relation(User, 'roles')
+        .of(id)
+        .loadMany<Role>();
+
+      const currentIds = currentRoles.map((r) => r.id);
+
+      await manager
+        .createQueryBuilder()
+        .relation(User, 'roles')
+        .of(id)
+        .addAndRemove(
+          rolesID,
+          currentIds.filter((id) => !rolesID.includes(id)),
+        );
+
       await this.userProfileService.syncProfiles(manager, id, newRoles);
       return newRoles;
     });
   }
 
   async findAll(
-    findAllUsersDto: FindAllUsersDto,
+    options: FindAllUsersDto,
     accessCriteria: AccessCriteria,
-  ): Promise<{
-    data: User[];
-    total: number;
-    limit: number;
-    offset: number;
-  }> {
-    const { limit = 10, offset = 0, roleId } = findAllUsersDto;
+  ): Promise<PaginatedResponseDto<User>> {
+    const { limit = 10, page = 1, roleId } = options;
+
+    const offset = (page - 1) * limit;
+
     const qb = this.baseListQuery();
 
     if (accessCriteria.is_active !== undefined) {
@@ -171,16 +186,19 @@ export class UserService {
       });
     }
 
-    if (roleId) qb.andWhere('roles.id = :roleId', { roleId });
+    if (roleId) {
+      qb.andWhere('roles.id = :roleId', { roleId });
+    }
 
     qb.orderBy('user.created_at', 'DESC');
-    const [users, total] = await qb.take(limit).skip(offset).getManyAndCount();
+
+    const [data, total] = await qb.take(limit).skip(offset).getManyAndCount();
 
     return {
-      data: users,
+      data,
       total,
       limit,
-      offset,
+      page,
     };
   }
 
@@ -201,21 +219,10 @@ export class UserService {
 
   async deleteAllUser(manager?: EntityManager): Promise<{ message: string }> {
     const repo = manager ? manager.getRepository(User) : this.userRepo;
-
-    try {
-      await repo.query('DELETE FROM "user_roles"');
-      await repo.createQueryBuilder().delete().where({}).execute();
-      await this.authService.deleteAllUserCredentials();
-
-      return {
-        message: 'Usuario eliminados (DB + Auth)',
-      };
-    } catch (error) {
-      console.error('Error al limpiar la tabla de usuarios:', error);
-      throw new InternalServerErrorException(
-        'Error al limpiar los usuarios en la DB o Auth',
-      );
-    }
+    await repo.query('DELETE FROM "user_roles"');
+    await repo.createQueryBuilder().delete().where({}).execute();
+    await this.authService.deleteAllUserCredentials();
+    return { message: 'Usuario eliminados (DB + Auth)' };
   }
 
   async getUserProfile(currentUser: ICurrentUser): Promise<UserMeResponseDto> {

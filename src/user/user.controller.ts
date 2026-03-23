@@ -39,7 +39,6 @@ import type { ICurrentUser } from 'src/common/interface/current-user.interface';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  //TODO: listo
   @PublicAccess()
   @Post()
   @ApiOperation({
@@ -55,7 +54,6 @@ export class UserController {
     });
   }
 
-  //TODO: listo
   @PublicAccess()
   @Patch(':id/roles')
   @ApiOperation({
@@ -73,7 +71,6 @@ export class UserController {
     });
   }
 
-  //TODO: listo
   @PublicAccess()
   @Patch(':id')
   @ApiOperation({
@@ -92,7 +89,6 @@ export class UserController {
     });
   }
 
-  //TODO: : listo
   @PublicAccess()
   @Patch(':id/deactivate')
   @ApiOperation({
@@ -109,7 +105,6 @@ export class UserController {
     return await this.userService.setStatus(id, false);
   }
 
-  //TODO: : listo
   @PublicAccess()
   @Patch(':id/activate')
   @ApiOperation({
@@ -126,7 +121,6 @@ export class UserController {
     return await this.userService.setStatus(id, true);
   }
 
-  //TODO: : listo
   @Get('me')
   @ApiOperation({
     summary: 'Obtener perfil detallado',
@@ -151,33 +145,29 @@ export class UserController {
   @ApiOperation({
     summary: 'Listar usuarios',
     description: `
-  Obtiene una lista paginada de usuarios con soporte para:.
+    Obtiene una lista paginada de usuarios con soporte para:.
 
-  * **1:** Inclusión opcional de usuarios inactivos.
-  * **2:** Filtro por rol.
-  * **3:** Paginación (limit, offset).
-  `,
+* **1:** Inclusión opcional de usuarios inactivos.
+* **2:** Filtro por rol.
+* **3:** Paginación (page, limit).
+`,
   })
   @ApiOkResponse({ type: PaginatedUserResponseDto })
   async findAll(
     @Query() findAllUsersDto: FindAllUsersDto,
     @GetAccessCriteria() accessCriteria: AccessCriteria,
-  ) {
-    const { data, total, limit, offset } = await this.userService.findAll(
+  ): Promise<PaginatedUserResponseDto> {
+    const result = await this.userService.findAll(
       findAllUsersDto,
       accessCriteria,
     );
 
     return {
-      data: {
-        items: plainToInstance(UserResponseWithRolesDto, data, {
-          excludeExtraneousValues: true,
-          exposeUnsetFields: false,
-        }),
-        total,
-        limit,
-        offset,
-      },
+      ...result,
+      data: plainToInstance(UserResponseWithRolesDto, result.data, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
     };
   }
 }

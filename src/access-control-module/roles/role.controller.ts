@@ -44,10 +44,7 @@ export class RoleController {
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<RoleResponseDto> {
-    const [role] = await this.roleService.find({
-      ids: [id],
-      withPermissions: true,
-    });
+    const role = await this.roleService.findOneById(id, undefined, true);
 
     return plainToInstance(RoleResponseDto, role, {
       excludeExtraneousValues: true,

@@ -24,15 +24,18 @@ export class MenuService {
     manager?: EntityManager,
   ): Promise<Menu> {
     const repo = this.getRepo(manager);
-    const [permission] = await this.permissionService.find({
+    const result = await this.permissionService.findAll({
       names: [createMenuDto.permission_name],
       manager,
     });
 
-    if (!permission)
+    const permission = result.data[0];
+
+    if (!permission) {
       throw new NotFoundException(
-        `The permission ${createMenuDto.permission_name} does not exist`,
+        `El permiso ${createMenuDto.permission_name} no existe`,
       );
+    }
 
     const newMenu = repo.create({
       name: createMenuDto.name,
@@ -50,7 +53,7 @@ export class MenuService {
         id: createMenuDto.parent_id,
       });
       if (!parentExists)
-        throw new NotFoundException('The parent menu does not exist');
+        throw new NotFoundException('El menú principal/Padre no existe');
     }
     return await repo.save(newMenu);
   }

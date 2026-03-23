@@ -8,9 +8,9 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 
-import { Attendance } from 'src/attendance-module/entities';
-import { ClassGroup } from 'src/class_groups/entities';
 import { User } from 'src/user/entities/user.entity';
+import { Attendance } from 'src/class-group/attendances/entities/attendance.entity';
+import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.entity';
 
 @Entity('STUDENTS')
 export class Student {
