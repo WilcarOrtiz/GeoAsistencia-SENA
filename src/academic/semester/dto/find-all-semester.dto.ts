@@ -4,7 +4,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 
 export class FindAllSemesterDto extends PaginationDto {
-  @ApiPropertyOptional({ example: StateSemester.ACTIVO })
+  @ApiPropertyOptional({ example: StateSemester.ACTIVE })
   @IsOptional()
   state?: StateSemester;
 }

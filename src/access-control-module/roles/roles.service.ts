@@ -6,6 +6,7 @@ import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { FindRoleOptions, IRoleSystemCreate } from './interface';
 import { Role } from './entities/role.entity';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
+import { Permission } from '../permissions/entities/permission.entity';
 
 @Injectable()
 export class RolesService {
@@ -95,54 +96,12 @@ export class RolesService {
     return role;
   }
 
-  /*  async syncPermissions(dto: UpdateRolePermissions): Promise<Role> {
-    const { roleId, permissionIds } = dto;
-
-    const exists = await this.roleRepo.exist({
-      where: { id: roleId, is_active: true },
-    });
-
-    if (!exists) {
-      throw new NotFoundException('El rol no existe');
-    }
-
-    await this.roleRepo
-      .createQueryBuilder()
-      .relation(Role, 'permissions')
-      .of(roleId)
-      .set(permissionIds);
-
-    return await this.findOneById(roleId, undefined, true);
-  }*/
-
   async syncPermissions(dto: UpdateRolePermissions): Promise<Role> {
     const { roleId, permissionIds } = dto;
-
-    const exists = await this.roleRepo.exist({
-      where: { id: roleId, is_active: true },
-    });
-    if (!exists) throw new NotFoundException('El rol no existe');
-
-    const role = await this.roleRepo.findOne({
-      where: { id: roleId },
-      relations: ['permissions'],
-    });
-
-    if (!role) {
-      throw new NotFoundException('El rol no existe');
-    }
-
-    const currentIds = role.permissions.map((p) => p.id);
-
-    await this.roleRepo.manager
-      .createQueryBuilder()
-      .relation(Role, 'permissions')
-      .of(roleId)
-      .addAndRemove(
-        permissionIds,
-        currentIds.filter((id) => !permissionIds.includes(id)),
-      );
-
+    const role = await this.findOneById(roleId, undefined, true);
+    const uniquePermissionIds = [...new Set(permissionIds)];
+    role.permissions = uniquePermissionIds.map((id) => ({ id }) as Permission);
+    await this.roleRepo.save(role);
     return this.findOneById(roleId, undefined, true);
   }
 

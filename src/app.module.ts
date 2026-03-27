@@ -4,12 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { AccessControlModuleModule } from './access-control-module/access-control-module.module';
-import { UserModule } from './user/user.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
-import { StudentModule } from './student/student.module';
-import { TeacherModule } from './teacher/teacher.module';
 import { ClassGroupModule } from './class-group/class-group.module';
+import { UsersModule } from './users/users.module';
+import { AcademicModule } from './academic/academic.module';
 
 @Module({
   imports: [
@@ -26,12 +25,11 @@ import { ClassGroupModule } from './class-group/class-group.module';
     CommonModule,
     SeedModule,
     AccessControlModuleModule,
-    UserModule,
     SupabaseModule,
+    AcademicModule,
     AuthModule,
-    StudentModule,
-    TeacherModule,
     ClassGroupModule,
+    UsersModule,
   ],
   providers: [],
 })

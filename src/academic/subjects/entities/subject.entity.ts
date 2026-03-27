@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.entity';
 import {
   normalizeCode,
@@ -30,9 +31,11 @@ export class Subject {
   @Column({ default: true })
   is_active: boolean;
 
+  @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 

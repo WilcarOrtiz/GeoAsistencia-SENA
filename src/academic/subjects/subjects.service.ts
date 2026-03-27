@@ -6,7 +6,7 @@ import {
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Subject } from './entities/subject.entity';
 import { isUUID } from 'class-validator';
 
@@ -93,5 +93,10 @@ export class SubjectsService {
     subject.is_active = false;
     await this.subjectRepo.save(subject);
     return { message: 'Asignatura desactivada correctamente' };
+  }
+
+  async removeSeed(manager: EntityManager): Promise<void> {
+    const repo = manager.getRepository(Subject);
+    await repo.createQueryBuilder().delete().execute();
   }
 }

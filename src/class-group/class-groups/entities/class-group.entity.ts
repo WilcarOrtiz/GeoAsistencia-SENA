@@ -11,8 +11,6 @@ import {
   Entity,
   Index,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -20,12 +18,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Teacher } from 'src/teacher/entities/teacher.entity';
-import { Student } from 'src/student/entities/student.entity';
+import { Teacher } from 'src/users/teacher/entities/teacher.entity';
 import { Subject } from 'src/academic/subjects/entities/subject.entity';
 import { Semester } from 'src/academic/semester/entities/semester.entity';
 import { ClassDays } from 'src/class-group/class-days/entities/class-day.entity';
 import { ClassSessions } from 'src/class-group/class-sessions/entities/class-session.entity';
+import { Exclude } from 'class-transformer';
+import { Enrollment } from 'src/class-group/enrollment/entities/enrollment.entity';
 
 @Entity('CLASS_GROUPS')
 @Unique(['semester', 'subject', 'name'])
@@ -49,9 +48,11 @@ export class ClassGroup {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
+  @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
   updated_at: Date;
 
@@ -79,13 +80,8 @@ export class ClassGroup {
   @JoinColumn({ name: 'teacher_id' })
   teacher: Teacher;
 
-  @ManyToMany(() => Student, (student) => student.groups)
-  @JoinTable({
-    name: 'ENROLLMENTS',
-    joinColumn: { name: 'class_group_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'student_id', referencedColumnName: 'auth_id' },
-  })
-  students: Student[];
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.classGroup)
+  enrollments: Enrollment[];
 
   @BeforeInsert()
   @BeforeUpdate()

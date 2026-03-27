@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Not, Repository } from 'typeorm';
+import { ILike, In, Not, Repository, EntityManager } from 'typeorm';
 import { Semester } from './entities/semester.entity';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 import { isUUID } from 'class-validator';
@@ -24,16 +24,10 @@ export class SemesterService {
 
   private validateTransition(current: StateSemester, next: StateSemester) {
     const validTransitions: Record<StateSemester, StateSemester[]> = {
-      [StateSemester.PLANIFICADO]: [
-        StateSemester.ACTIVO,
-        StateSemester.CANCELADO,
-      ],
-      [StateSemester.ACTIVO]: [
-        StateSemester.FINALIZADO,
-        StateSemester.CANCELADO,
-      ],
-      [StateSemester.FINALIZADO]: [],
-      [StateSemester.CANCELADO]: [],
+      [StateSemester.PLANNED]: [StateSemester.ACTIVE, StateSemester.CANCELED],
+      [StateSemester.ACTIVE]: [StateSemester.FINISHED, StateSemester.CANCELED],
+      [StateSemester.FINISHED]: [],
+      [StateSemester.CANCELED]: [],
     };
 
     if (!validTransitions[current].includes(next)) {
@@ -110,16 +104,14 @@ export class SemesterService {
     if (!semester) throw new NotFoundException(`Semestre no encontrado`);
 
     if (
-      [StateSemester.FINALIZADO, StateSemester.CANCELADO].includes(
-        semester.state,
-      )
+      [StateSemester.FINISHED, StateSemester.CANCELED].includes(semester.state)
     ) {
       throw new BadRequestException(
         'No se puede modificar un semestre finalizado o cancelado',
       );
     }
 
-    if (semester.state === StateSemester.ACTIVO && (start_date || end_date)) {
+    if (semester.state === StateSemester.ACTIVE && (start_date || end_date)) {
       throw new BadRequestException(
         'No se permite cambiar fechas de un semestre en curso',
       );
@@ -210,6 +202,24 @@ export class SemesterService {
     return semester;
   }
 
+  async findActiveOrPlanned(id: string): Promise<Semester> {
+    const semester = await this.semesterRepo.findOne({
+      where: {
+        id,
+        is_active: true,
+        state: In([StateSemester.ACTIVE, StateSemester.PLANNED]),
+      },
+    });
+
+    if (!semester) {
+      throw new BadRequestException(
+        'El semestre no existe o no está en un estado válido para asignar grupos',
+      );
+    }
+
+    return semester;
+  }
+
   async findAll(
     options: FindAllSemesterDto,
   ): Promise<PaginatedResponseDto<Semester>> {
@@ -234,11 +244,17 @@ export class SemesterService {
       page,
     };
   }
+
   async remove(id: string): Promise<{ message: string }> {
     const semester = await this.semesterRepo.findOneBy({ id });
     if (!semester) throw new NotFoundException('Semestre no encontrado');
     semester.is_active = false;
     await this.semesterRepo.save(semester);
     return { message: 'Semestre eliminado correctamente' };
+  }
+
+  async removeSeed(manager: EntityManager): Promise<void> {
+    const repo = manager.getRepository(Semester);
+    await repo.createQueryBuilder().delete().execute();
   }
 }

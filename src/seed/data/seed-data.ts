@@ -55,6 +55,16 @@ export const initialData: SeedData = {
         'ver_metricas',
       ],
     },
+    {
+      name: ValidRole.STUDENT,
+      description: 'Estudiante con con acceso limitado',
+      permissions: [
+        'ver_asignaturas',
+        'editar_asignatura',
+        'gestionar_grupos',
+        'ver_metricas',
+      ],
+    },
   ],
 
   menus: [

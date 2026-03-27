@@ -69,7 +69,7 @@ export class SemesterController {
   })
   @ApiOkResponse({
     schema: {
-      example: { state: StateSemester.ACTIVO },
+      example: { state: StateSemester.ACTIVE },
     },
   })
   async changeState(

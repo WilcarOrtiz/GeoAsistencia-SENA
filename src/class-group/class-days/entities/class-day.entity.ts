@@ -12,7 +12,7 @@ import { getWeekDayLabel, WeekDay } from 'src/common/enums/weeyDay.enum';
 import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.entity';
 
 @Entity('CLASS_DAYS')
-@Index(['classGroup', 'day', 'start_time'], { unique: true })
+@Index(['classGroup', 'day', 'start_time', 'end_time'], { unique: true })
 export class ClassDays {
   @PrimaryGeneratedColumn('uuid')
   id: string;

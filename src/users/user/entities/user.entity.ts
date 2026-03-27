@@ -1,8 +1,8 @@
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { toTitleCase } from 'src/common/utils/string-format.util';
-import { Student } from 'src/student/entities/student.entity';
-import { Teacher } from 'src/teacher/entities/teacher.entity';
+import { Student } from 'src/users/student/entities/student.entity';
+import { Teacher } from 'src/users/teacher/entities/teacher.entity';
 import {
   Column,
   CreateDateColumn,

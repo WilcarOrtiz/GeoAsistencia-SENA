@@ -7,7 +7,7 @@ export class ChangeSemesterStateDto {
     enum: StateSemester,
     enumName: 'StateSemester',
     description: 'Estado actual del semestre',
-    example: StateSemester.ACTIVO,
+    example: StateSemester.ACTIVE,
   })
   @IsEnum(StateSemester)
   state: StateSemester;

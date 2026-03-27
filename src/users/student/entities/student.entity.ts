@@ -2,15 +2,14 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/users/user/entities/user.entity';
 import { Attendance } from 'src/class-group/attendances/entities/attendance.entity';
-import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.entity';
+import { Enrollment } from 'src/class-group/enrollment/entities/enrollment.entity';
 
 @Entity('STUDENTS')
 export class Student {
@@ -30,6 +29,6 @@ export class Student {
   @OneToMany(() => Attendance, (attendance) => attendance.student)
   attendances: Attendance[];
 
-  @ManyToMany(() => ClassGroup, (group) => group.students)
-  groups: ClassGroup[];
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
+  enrollments: Enrollment[];
 }

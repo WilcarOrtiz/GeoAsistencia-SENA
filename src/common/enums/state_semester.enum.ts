@@ -1,6 +1,6 @@
 export enum StateSemester {
-  PLANIFICADO = 'planificado', // Aún no inicia
-  ACTIVO = 'activo', // En curso
-  FINALIZADO = 'finalizado', // Cerrado académicamente
-  CANCELADO = 'cancelado', // Cancelado antes o durante ejecución
+  PLANNED = 'planned', // Aún no inicia
+  ACTIVE = 'active', // En curso
+  FINISHED = 'finished', // Cerrado académicamente
+  CANCELED = 'canceled', // Cancelado antes o durante ejecución
 }

@@ -1,26 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { CreateClassSessionDto } from './dto/create-class-session.dto';
-import { UpdateClassSessionDto } from './dto/update-class-session.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
+import { ClassSessions } from './entities/class-session.entity';
 
 @Injectable()
 export class ClassSessionsService {
-  create(createClassSessionDto: CreateClassSessionDto) {
-    return 'This action adds a new classSession';
-  }
+  constructor(
+    @InjectRepository(ClassSessions)
+    private readonly classGroupRepo: Repository<ClassSessions>,
+  ) {}
 
-  findAll() {
-    return `This action returns all classSessions`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} classSession`;
-  }
-
-  update(id: number, updateClassSessionDto: UpdateClassSessionDto) {
-    return `This action updates a #${id} classSession`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} classSession`;
+  async removeSeed(manager: EntityManager): Promise<void> {
+    const repo = manager.getRepository(ClassSessions);
+    await repo.createQueryBuilder().delete().execute();
   }
 }

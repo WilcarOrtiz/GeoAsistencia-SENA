@@ -32,7 +32,7 @@ export class SemesterResponseDto {
   @Expose()
   end_date: Date;
 
-  @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVO })
+  @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVE })
   @Expose()
   state: StateSemester;
 

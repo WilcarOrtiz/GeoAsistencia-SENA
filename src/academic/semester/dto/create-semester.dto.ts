@@ -31,7 +31,7 @@ export class CreateSemesterDto {
 
   @ApiProperty({
     enum: StateSemester,
-    example: StateSemester.ACTIVO,
+    example: StateSemester.ACTIVE,
   })
   @IsNotEmpty({ message: 'El estado es obligatorio' })
   @IsEnum(StateSemester, {

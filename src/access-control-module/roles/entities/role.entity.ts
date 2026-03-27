@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Permission } from '../../permissions/entities/permission.entity';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/users/user/entities/user.entity';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { Exclude } from 'class-transformer';
 

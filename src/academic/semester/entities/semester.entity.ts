@@ -60,7 +60,7 @@ export class Semester {
   @Column({
     type: 'enum',
     enum: StateSemester,
-    default: StateSemester.ACTIVO,
+    default: StateSemester.ACTIVE,
   })
   state: StateSemester;
 

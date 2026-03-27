@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Student } from 'src/student/entities/student.entity';
+import { Student } from 'src/users/student/entities/student.entity';
 import { AttendanceStatus } from 'src/common/enums/attendance-status.enum';
 import { ClassSessions } from 'src/class-group/class-sessions/entities/class-session.entity';
 

@@ -6,9 +6,9 @@ import {
 
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RolesService } from '../../access-control-module/roles/roles.service';
+import { RolesService } from '../../../access-control-module/roles/roles.service';
 import { AuthService } from 'src/auth/auth.service';
-import { MenuService } from '../../access-control-module/menu/menu.service';
+import { MenuService } from '../../../access-control-module/menu/menu.service';
 
 import { AccessCriteria } from 'src/common/decorators/get-access-criteria.decorator';
 import {
@@ -141,33 +141,22 @@ export class UserService {
   ): Promise<Role[]> {
     const user = await this.userRepo.findOne({
       where: { auth_id: id },
+      relations: ['roles'],
     });
 
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    return this.userRepo.manager.transaction(async (manager) => {
-      const newRoles = await this.rolesService.findByIds(rolesID, manager);
+    const uniqueRoleIds = [...new Set(rolesID)];
+    const roles = await this.rolesService.findByIds(uniqueRoleIds);
+    user.roles = roles;
+    await this.userRepo.save(user);
+    await this.userProfileService.syncProfiles(
+      this.userRepo.manager,
+      id,
+      roles,
+    );
 
-      const currentRoles = await manager
-        .createQueryBuilder()
-        .relation(User, 'roles')
-        .of(id)
-        .loadMany<Role>();
-
-      const currentIds = currentRoles.map((r) => r.id);
-
-      await manager
-        .createQueryBuilder()
-        .relation(User, 'roles')
-        .of(id)
-        .addAndRemove(
-          rolesID,
-          currentIds.filter((id) => !rolesID.includes(id)),
-        );
-
-      await this.userProfileService.syncProfiles(manager, id, newRoles);
-      return newRoles;
-    });
+    return roles;
   }
 
   async findAll(
