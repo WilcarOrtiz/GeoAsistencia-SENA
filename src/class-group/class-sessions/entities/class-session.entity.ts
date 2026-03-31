@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -11,6 +12,7 @@ import {
 } from 'typeorm';
 
 @Entity('CLASS_SESSIONS')
+@Index(['code_class_session'])
 export class ClassSessions {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -27,8 +29,14 @@ export class ClassSessions {
   @Column({ type: 'time', nullable: false })
   attendance_opened_at: string;
 
-  @Column({ type: 'time', nullable: false })
+  @Column({ type: 'time', nullable: true })
   attendance_closed_at: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  teacher_latitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  teacher_longitude: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;

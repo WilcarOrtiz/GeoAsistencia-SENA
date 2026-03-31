@@ -153,6 +153,18 @@ export class EnrollmentService {
     });
   }
 
+  async findEnrollmentActive(class_group_id: string) {
+    const enrollments = await this.enrollmentRepo.find({
+      where: {
+        classGroup: { id: class_group_id },
+        status: EnrollmentStatus.ACTIVE,
+      },
+      relations: ['student'],
+    });
+
+    return enrollments.map((e) => e.student.auth_id);
+  }
+
   async removeSeed(manager: EntityManager): Promise<void> {
     await manager.getRepository(Enrollment).clear();
   }

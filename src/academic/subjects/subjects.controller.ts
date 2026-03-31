@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
@@ -47,8 +48,10 @@ export class SubjectsController {
     summary: 'Actualizar asigantura',
   })
   @ApiOkResponse({ type: SubjectResponseDto })
-  @ApiOkResponse({ type: SubjectResponseDto })
-  update(@Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateSubjectDto: UpdateSubjectDto,
+  ) {
     return this.subjectsService.update(id, updateSubjectDto);
   }
 
@@ -57,7 +60,7 @@ export class SubjectsController {
     summary: 'Eliminar asignatura',
     description: 'Elimina LOGICAMENTE la asignatura del sistema',
   })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.subjectsService.remove(id);
   }
 }

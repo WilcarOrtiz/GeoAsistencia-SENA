@@ -82,20 +82,4 @@ export class ClassGroupsService {
 
     return classgroup;
   }
-
-  /* async findOne(term: string): Promise<ClassGroup> {
-    const classgroup = isUUID(term)
-      ? await this.classGroupRepo.findOneBy({ id: term, is_active: true })
-      : await this.classGroupRepo
-          .createQueryBuilder('classgroup')
-          .where(
-            '(classgroup.code = :term OR classgroup.name = :term) AND classgroup.is_active = true',
-            { term },
-          )
-          .getOne();
-
-    if (!classgroup)
-      throw new NotFoundException(`Grupo de clase no encontrado`);
-    return classgroup;
-  }*/
 }

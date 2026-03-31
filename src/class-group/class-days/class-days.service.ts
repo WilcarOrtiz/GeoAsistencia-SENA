@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClassDays } from './entities/class-day.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { ClassGroupsService } from '../class-groups/class-groups.service';
-import { getWeekDayLabel } from 'src/common/enums/weeyDay.enum';
+import { getWeekDayLabel, WeekDay } from 'src/common/enums/weeyDay.enum';
 
 @Injectable()
 export class ClassDaysService {
@@ -49,6 +49,38 @@ export class ClassDaysService {
     });
 
     return await this.classDaysRepo.save(classDay);
+  }
+
+  async validateDayClassInSession(groupId: string) {
+    const now = new Date();
+    const dayOfWeek = now.getDay() as WeekDay;
+
+    const currentTime = now.toTimeString().split(' ')[0];
+
+    const schedule = await this.classDaysRepo.findOne({
+      where: {
+        classGroup: { id: groupId },
+        is_active: true,
+        day: dayOfWeek,
+      },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException(
+        `No hay clase este día ${getWeekDayLabel(dayOfWeek)}`,
+      );
+    }
+
+    const isInSchedule =
+      currentTime >= schedule.start_time && currentTime <= schedule.end_time;
+
+    if (!isInSchedule) {
+      throw new BadRequestException(
+        `Estas fuera del horario de clase ${schedule.start_time} a ${schedule.end_time}`,
+      );
+    }
+
+    return currentTime;
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {

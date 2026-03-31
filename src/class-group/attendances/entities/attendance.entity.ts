@@ -2,10 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -14,7 +14,7 @@ import { AttendanceStatus } from 'src/common/enums/attendance-status.enum';
 import { ClassSessions } from 'src/class-group/class-sessions/entities/class-session.entity';
 
 @Entity('ATTENDANCES')
-@Index(['student', 'classSession'], { unique: true })
+@Unique(['student', 'classSession'])
 export class Attendance {
   @PrimaryGeneratedColumn('uuid')
   id: string;
