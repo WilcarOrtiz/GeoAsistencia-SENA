@@ -12,7 +12,12 @@ import {
 import { SemesterService } from './semester.service';
 
 import { PublicAccess } from 'src/common/decorators';
-import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 import {
   ChangeSemesterStateDto,
@@ -25,6 +30,7 @@ import { plainToInstance } from 'class-transformer';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 import { PaginatedSemesterResponseDto } from './dto/semester-response.dto';
 
+@ApiBearerAuth('access-token')
 @PublicAccess()
 @Controller('semester')
 export class SemesterController {

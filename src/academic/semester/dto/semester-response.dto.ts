@@ -17,20 +17,20 @@ export class SemesterResponseDto {
   name: string;
 
   @ApiProperty({ example: 2025 })
-  @Expose()
-  academic_year: number;
+  @Expose({ name: 'academic_year' })
+  academicYear: number;
 
   @ApiProperty({ example: 1 })
   @Expose()
   term: number;
 
   @ApiProperty({ type: Date, example: '2025-01-15' })
-  @Expose()
-  start_date: Date;
+  @Expose({ name: 'start_date' })
+  startDate: Date;
 
   @ApiProperty({ type: Date, example: '2025-06-30' })
-  @Expose()
-  end_date: Date;
+  @Expose({ name: 'end_date' })
+  endDate: Date;
 
   @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVE })
   @Expose()

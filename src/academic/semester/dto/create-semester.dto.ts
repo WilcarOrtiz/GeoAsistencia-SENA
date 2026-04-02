@@ -18,7 +18,7 @@ export class CreateSemesterDto {
   @MinDate(new Date('2020-01-01'), {
     message: 'La fecha de inicio no puede ser anterior al año 2020',
   })
-  start_date: Date;
+  startDate: Date;
 
   @ApiProperty({ example: '2025-06-30' })
   @IsNotEmpty({ message: 'La fecha de finalización es obligatoria' })
@@ -27,7 +27,7 @@ export class CreateSemesterDto {
   @MinDate(new Date('2020-01-01'), {
     message: 'La fecha de finalización no puede ser anterior al año 2020',
   })
-  end_date: Date;
+  endDate: Date;
 
   @ApiProperty({
     enum: StateSemester,

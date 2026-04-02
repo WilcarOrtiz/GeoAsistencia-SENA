@@ -51,9 +51,9 @@ export class SemesterService {
   }
 
   async create(createSemesterDto: CreateSemesterDto): Promise<Semester> {
-    const { name, start_date, end_date } = createSemesterDto;
-    this.validateDateRange(start_date, end_date);
-    const { startYear, term, code } = this.generateAcademicInfo(start_date);
+    const { name, startDate, endDate, state } = createSemesterDto;
+    this.validateDateRange(startDate, endDate);
+    const { startYear, term, code } = this.generateAcademicInfo(startDate);
 
     const existing = await this.semesterRepo.findOne({
       where: [
@@ -78,9 +78,12 @@ export class SemesterService {
     }
 
     const semester = this.semesterRepo.create({
-      ...createSemesterDto,
+      name: name,
+      end_date: endDate,
+      start_date: startDate,
       code,
       term,
+      state,
       academic_year: startYear,
     });
 
@@ -92,12 +95,12 @@ export class SemesterService {
     updateSemesterDto: UpdateSemesterDto,
   ): Promise<Semester> {
     const name = updateSemesterDto.name;
-    const start_date = updateSemesterDto.start_date
-      ? updateSemesterDto.start_date
+    const start_date = updateSemesterDto.startDate
+      ? updateSemesterDto.startDate
       : undefined;
 
-    const end_date = updateSemesterDto.end_date
-      ? updateSemesterDto.end_date
+    const end_date = updateSemesterDto.endDate
+      ? updateSemesterDto.endDate
       : undefined;
 
     const semester = await this.semesterRepo.findOneBy({ id });
@@ -156,7 +159,15 @@ export class SemesterService {
         academicUpdates = { academic_year: startYear, term, code };
     }
 
-    this.semesterRepo.merge(semester, updateSemesterDto, academicUpdates);
+    this.semesterRepo.merge(
+      semester,
+      {
+        name: updateSemesterDto.name,
+        start_date: updateSemesterDto.startDate,
+        end_date: updateSemesterDto.endDate,
+      },
+      academicUpdates,
+    );
     return await this.semesterRepo.save(semester);
   }
 
