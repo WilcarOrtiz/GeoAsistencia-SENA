@@ -3,9 +3,8 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
-import { FindRoleOptions, IRoleSystemCreate } from './interface';
+import { IRoleSystemCreate } from './interface';
 import { Role } from './entities/role.entity';
-import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 import { Permission } from '../permissions/entities/permission.entity';
 
 @Injectable()
@@ -105,33 +104,42 @@ export class RolesService {
     return this.findOneById(roleId, undefined, true);
   }
 
-  async findAll(options: FindRoleOptions): Promise<PaginatedResponseDto<Role>> {
-    const { ids, withPermissions = false, pagination, manager } = options;
-    const repo = this.getRepo(manager);
+  async removePermissionFromRole(
+    roleId: string,
+    permissionId: string,
+  ): Promise<void> {
+    await this.findOneById(roleId);
 
-    const page = pagination?.page ?? 1;
-    const limit = pagination?.limit ?? 10;
-    const offset = (page - 1) * limit;
+    await this.roleRepo
+      .createQueryBuilder()
+      .relation(Role, 'permissions')
+      .of(roleId)
+      .remove(permissionId);
+  }
 
-    const [data, total] = await repo.findAndCount({
+  async addPermissionToRole(
+    roleId: string,
+    permissionId: string,
+  ): Promise<void> {
+    const role = await this.findOneById(roleId, undefined, true);
+
+    const alreadyHas = role.permissions.some((p) => p.id === permissionId);
+    if (alreadyHas) return;
+
+    await this.roleRepo
+      .createQueryBuilder()
+      .relation(Role, 'permissions')
+      .of(roleId)
+      .add(permissionId);
+  }
+
+  async findAll(): Promise<Role[]> {
+    const data = await this.roleRepo.find({
       where: {
         is_active: true,
-        ...(ids ? { id: In(ids) } : {}),
       },
-      relations: { permissions: withPermissions },
-      take: limit,
-      skip: offset,
     });
 
-    if (ids && data.length !== [...new Set(ids)].length) {
-      throw new NotFoundException('No se encontraron uno o más roles');
-    }
-
-    return {
-      data,
-      total,
-      limit,
-      page,
-    };
+    return data;
   }
 }

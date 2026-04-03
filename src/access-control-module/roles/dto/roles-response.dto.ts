@@ -2,6 +2,7 @@ import { Expose, Type } from 'class-transformer';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { PermissionSimpleResponseDto } from '../../permissions/dto/permission-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 
 export class RoleListItemDto {
   @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
@@ -36,4 +37,11 @@ export class RoleResponseDto extends RoleSimpleResponseDto {
   @Expose()
   @Type(() => PermissionSimpleResponseDto)
   permissions?: PermissionSimpleResponseDto[];
+}
+
+export class PaginatedRoleResponseDto extends PaginatedResponseDto<RoleSimpleResponseDto> {
+  @Expose()
+  @Type(() => RoleSimpleResponseDto)
+  @ApiProperty({ type: [RoleSimpleResponseDto] })
+  declare data: RoleSimpleResponseDto[];
 }

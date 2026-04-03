@@ -12,7 +12,10 @@ import { plainToInstance } from 'class-transformer';
 import { RolesService } from './roles.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { PublicAccess } from 'src/common/decorators';
-import { RoleResponseDto } from './dto/roles-response.dto';
+import {
+  RoleResponseDto,
+  RoleSimpleResponseDto,
+} from './dto/roles-response.dto';
 
 @ApiBearerAuth('access-token')
 @PublicAccess()
@@ -36,6 +39,54 @@ export class RoleController {
     });
   }
 
+  @Patch(':roleId/permissions/:permissionId/remove')
+  @ApiOperation({
+    summary: 'Quitar un permiso de un rol',
+  })
+  @ApiOkResponse({
+    description: 'Permiso removido correctamente',
+  })
+  async removePermissionFromRole(
+    @Param('roleId', ParseUUIDPipe) roleId: string,
+    @Param('permissionId', ParseUUIDPipe) permissionId: string,
+  ): Promise<{ message: string }> {
+    await this.roleService.removePermissionFromRole(roleId, permissionId);
+
+    return {
+      message: 'Permiso removido correctamente',
+    };
+  }
+
+  @Patch(':roleId/permissions/:permissionId/add')
+  @ApiOperation({
+    summary: 'Agregar un permiso a un rol',
+  })
+  @ApiOkResponse({
+    description: 'Permiso agregado correctamente',
+  })
+  async addPermissionToRole(
+    @Param('roleId', ParseUUIDPipe) roleId: string,
+    @Param('permissionId', ParseUUIDPipe) permissionId: string,
+  ): Promise<{ message: string }> {
+    await this.roleService.addPermissionToRole(roleId, permissionId);
+
+    return {
+      message: 'Permiso agregado correctamente',
+    };
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'obtener roles del sistema',
+  })
+  @ApiOkResponse({ type: RoleSimpleResponseDto })
+  async findAll() {
+    const result = await this.roleService.findAll();
+
+    return result;
+  }
+
+  //TODO: borrar si no lo utilizo
   @Get(':id')
   @ApiOperation({
     summary: 'obtener rol junto a sus permisos',
