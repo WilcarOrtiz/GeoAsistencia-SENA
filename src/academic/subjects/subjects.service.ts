@@ -9,6 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Subject } from './entities/subject.entity';
 import { isUUID } from 'class-validator';
+import {
+  PaginatedResponseDto,
+  PaginationDto,
+} from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class SubjectsService {
@@ -71,6 +75,38 @@ export class SubjectsService {
 
     this.subjectRepo.merge(subject, updateSubjectDto);
     return this.subjectRepo.save(subject);
+  }
+
+  /*  async findAll(): Promise<Subject[]> {
+    return this.subjectRepo.find({
+      where: { is_active: true },
+      order: { name: 'ASC' },
+    });
+  }
+*/
+
+  async findAll(
+    options: PaginationDto,
+  ): Promise<PaginatedResponseDto<Subject>> {
+    const { limit = 10, page = 1 } = options;
+
+    const offset = (page - 1) * limit;
+
+    const [data, total] = await this.subjectRepo.findAndCount({
+      where: {
+        is_active: true,
+      },
+      order: { created_at: 'ASC' },
+      take: limit,
+      skip: offset,
+    });
+
+    return {
+      data,
+      total,
+      limit,
+      page,
+    };
   }
 
   async findOne(term: string): Promise<Subject> {

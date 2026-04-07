@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
@@ -14,6 +15,8 @@ import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { PublicAccess } from 'src/common/decorators';
 import { plainToInstance } from 'class-transformer';
 import { CreateSubjectDto, SubjectResponseDto, UpdateSubjectDto } from './dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { PaginatedSubjectResponseDto } from './dto/subject-response.dto';
 
 @PublicAccess()
 @Controller('subjects')
@@ -53,6 +56,25 @@ export class SubjectsController {
     @Body() updateSubjectDto: UpdateSubjectDto,
   ) {
     return this.subjectsService.update(id, updateSubjectDto);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Listar semestres',
+  })
+  @ApiOkResponse({ type: PaginatedSubjectResponseDto })
+  async FindAllSemesterDto(
+    @Query() pagination: PaginationDto,
+  ): Promise<PaginatedSubjectResponseDto> {
+    const result = await this.subjectsService.findAll(pagination);
+
+    return {
+      ...result,
+      data: plainToInstance(SubjectResponseDto, result.data, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+    };
   }
 
   @Delete(':id')

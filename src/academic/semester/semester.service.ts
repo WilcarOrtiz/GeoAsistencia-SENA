@@ -257,8 +257,19 @@ export class SemesterService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const semester = await this.semesterRepo.findOneBy({ id });
+    const semester = await this.semesterRepo.findOne({
+      where: { id },
+      relations: { classGroups: true }, // 👈 carga la relación
+    });
+
     if (!semester) throw new NotFoundException('Semestre no encontrado');
+
+    if (semester.classGroups.length > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar el semestre porque tiene grupos de clase asociados',
+      );
+    }
+
     semester.is_active = false;
     await this.semesterRepo.save(semester);
     return { message: 'Semestre eliminado correctamente' };
