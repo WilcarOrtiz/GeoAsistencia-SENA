@@ -41,6 +41,9 @@ export class User {
   @Column({ default: true })
   is_active: boolean;
 
+  @Column({ unique: true })
+  email: string;
+
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'RESTRICT',
   })

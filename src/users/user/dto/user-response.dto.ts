@@ -13,6 +13,10 @@ export class UserBaseResponseDto {
   @Expose()
   ID_user: string;
 
+  @ApiProperty({ example: 'correo@email.com' })
+  @Expose()
+  email: string;
+
   @ApiProperty({ example: 'Wilcar' })
   @Expose()
   first_name: string;

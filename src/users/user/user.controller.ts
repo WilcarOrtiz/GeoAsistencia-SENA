@@ -40,6 +40,21 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @PublicAccess()
+  @Get('is-active')
+  @ApiOperation({
+    summary: 'Verificar si un usuario está activo',
+    description:
+      'Recibe un correo y devuelve true o false si el usuario está activo.',
+  })
+  @ApiOkResponse({
+    schema: { example: { isActive: true } },
+  })
+  async isActiveUser(@Query('email') email: string) {
+    const isActive = await this.userService.isUserActiveByEmail(email);
+    return { isActive };
+  }
+
+  @PublicAccess()
   @Post()
   @ApiOperation({
     summary: 'Crear un nuevo usuario',

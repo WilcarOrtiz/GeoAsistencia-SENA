@@ -43,6 +43,7 @@ export class UserService {
       .select([
         'user.auth_id',
         'user.ID_user',
+        'user.email',
         'user.first_name',
         'user.middle_name',
         'user.last_name',
@@ -74,6 +75,14 @@ export class UserService {
     }
   }
 
+  private async validateUniqueEmail(email: string, excludeAuthId?: string) {
+    const user = await this.userRepo.findOneBy({ email });
+
+    if (user && user.auth_id !== excludeAuthId) {
+      throw new BadRequestException(`Email ya está en uso`);
+    }
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const {
       ID,
@@ -97,6 +106,7 @@ export class UserService {
           const user = manager.create(User, {
             auth_id: userIdAuth,
             ID_user: ID,
+            email,
             first_name,
             middle_name,
             last_name,
@@ -122,8 +132,16 @@ export class UserService {
   }
 
   async update(auth_id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    if (updateUserDto.ID)
-      await this.validateUniqueUserId(updateUserDto.ID, auth_id);
+    const { email, ID } = updateUserDto;
+
+    if (ID) {
+      await this.validateUniqueUserId(ID, auth_id);
+    }
+
+    if (email) {
+      await this.validateUniqueEmail(email, auth_id);
+      await this.authService.updateUserEmail(auth_id, email);
+    }
 
     const user = await this.userRepo.preload({
       auth_id,
@@ -131,7 +149,8 @@ export class UserService {
     });
 
     if (!user) throw new NotFoundException(`Usuario no encontrado`);
-    if (!user.is_active) throw new BadRequestException(` usuario inactivo`);
+    if (!user.is_active) throw new BadRequestException(`usuario inactivo`);
+
     return this.userRepo.save(user);
   }
 
@@ -245,5 +264,16 @@ export class UserService {
       processedPermissions: names,
       processedPermissionIds: ids,
     };
+  }
+
+  async isUserActiveByEmail(email: string): Promise<boolean> {
+    const user = await this.userRepo.findOne({
+      where: { email },
+      select: ['is_active'],
+    });
+
+    if (!user || !user.is_active) return false;
+
+    return true;
   }
 }

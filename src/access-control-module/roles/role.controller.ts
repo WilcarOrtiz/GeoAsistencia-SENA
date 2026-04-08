@@ -1,21 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
-
 import { RolesService } from './roles.service';
-import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
 import { PublicAccess } from 'src/common/decorators';
-import {
-  RoleResponseDto,
-  RoleSimpleResponseDto,
-} from './dto/roles-response.dto';
+import { RoleResponseDto } from './dto/roles-response.dto';
 
 @ApiBearerAuth('access-token')
 @PublicAccess()
@@ -23,22 +11,7 @@ import {
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}
 
-  @Patch('sync-permissions')
-  @ApiOperation({
-    summary: 'Sincronización de permisos de un rol',
-    description: 'Actualiza los permisos de un rol.',
-  })
-  @ApiOkResponse({ type: RoleResponseDto })
-  async syncPermissions(
-    @Body() dto: UpdateRolePermissions,
-  ): Promise<RoleResponseDto> {
-    const role = await this.roleService.syncPermissions(dto);
-
-    return plainToInstance(RoleResponseDto, role, {
-      excludeExtraneousValues: true,
-    });
-  }
-
+  //TODO: USADO
   @Patch(':roleId/permissions/:permissionId/remove')
   @ApiOperation({
     summary: 'Quitar un permiso de un rol',
@@ -57,6 +30,7 @@ export class RoleController {
     };
   }
 
+  //TODO: USADO
   @Patch(':roleId/permissions/:permissionId/add')
   @ApiOperation({
     summary: 'Agregar un permiso a un rol',
@@ -75,30 +49,19 @@ export class RoleController {
     };
   }
 
+  //TODO: USADO
   @Get()
   @ApiOperation({
-    summary: 'obtener roles del sistema',
+    summary: 'Listar roles del sistema',
   })
-  @ApiOkResponse({ type: RoleSimpleResponseDto })
+  @ApiOkResponse({ type: RoleResponseDto })
   async findAll() {
     const result = await this.roleService.findAll();
 
-    return result;
-  }
-
-  //TODO: borrar si no lo utilizo
-  @Get(':id')
-  @ApiOperation({
-    summary: 'obtener rol junto a sus permisos',
-  })
-  @ApiOkResponse({ type: RoleResponseDto })
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<RoleResponseDto> {
-    const role = await this.roleService.findOneById(id, undefined, true);
-
-    return plainToInstance(RoleResponseDto, role, {
+    return plainToInstance(RoleResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 }
+
+// Borrados: obtener rol junto a sus permisos - Sincronización de permisos de un rol

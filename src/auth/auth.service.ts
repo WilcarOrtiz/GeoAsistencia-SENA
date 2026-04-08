@@ -9,6 +9,23 @@ import { SupabaseAdminService } from 'src/supabase/supabase-admin/supabase-admin
 export class AuthService {
   constructor(private readonly supabaseAdmin: SupabaseAdminService) {}
 
+  async updateUserEmail(authId: string, email: string) {
+    const { error } = await this.supabaseAdmin.client.auth.admin.updateUserById(
+      authId,
+      {
+        email,
+      },
+    );
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        throw new BadRequestException('Email ya está en uso');
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async createUserCredentials(email: string, id: string) {
     const { data, error } =
       await this.supabaseAdmin.client.auth.admin.createUser({

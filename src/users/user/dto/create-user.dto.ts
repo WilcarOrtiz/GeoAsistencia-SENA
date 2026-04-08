@@ -24,18 +24,30 @@ export class CreateUserDto {
 
   @ApiProperty({ example: 'Wilcar' })
   @IsNotEmpty({ message: 'El primer nombre es obligatorio' })
+  @Length(1, 15, {
+    message: 'El nombre debe tener entre 1 y 15 caracteres',
+  })
   first_name: string;
 
   @ApiProperty({ example: 'Daniel', required: false })
   @IsOptional()
+  @Length(1, 15, {
+    message: 'El segundo nombre debe tener entre 1 y 15 caracteres',
+  })
   middle_name?: string;
 
   @ApiProperty({ example: 'Ortiz' })
   @IsNotEmpty({ message: 'El primer apellido es obligatorio' })
+  @Length(1, 15, {
+    message: 'El primer apellido debe tener entre 1 y 15 caracteres',
+  })
   last_name: string;
 
   @ApiProperty({ example: 'Colpas', required: false })
   @IsOptional()
+  @Length(1, 15, {
+    message: 'El segundo apellido debe tener entre 1 y 15 caracteres',
+  })
   second_last_name?: string;
 
   @ApiProperty({ example: 'ortizcolpaswilcardaniel@gmail.com' })
