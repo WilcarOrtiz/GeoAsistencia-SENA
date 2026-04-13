@@ -10,7 +10,6 @@ import { RolesService } from '../../../access-control-module/roles/roles.service
 import { AuthService } from 'src/auth/auth.service';
 import { MenuService } from '../../../access-control-module/menu/menu.service';
 
-import { AccessCriteria } from 'src/common/decorators/get-access-criteria.decorator';
 import {
   CreateUserDto,
   FindAllUsersDto,
@@ -149,8 +148,7 @@ export class UserService {
     });
 
     if (!user) throw new NotFoundException(`Usuario no encontrado`);
-    if (!user.is_active) throw new BadRequestException(`usuario inactivo`);
-
+    if (!user) throw new BadRequestException(`usuario inactivo`);
     return this.userRepo.save(user);
   }
 
@@ -178,36 +176,36 @@ export class UserService {
     return roles;
   }
 
-  async findAll(
-    options: FindAllUsersDto,
-    accessCriteria: AccessCriteria,
-  ): Promise<PaginatedResponseDto<User>> {
-    const { limit = 10, page = 1, roleId } = options;
+  async findOne(auth_id: string): Promise<User> {
+    const user = await this.baseListQuery()
+      .where('user.auth_id = :auth_id', { auth_id })
+      .getOne();
+
+    console.log('usuario encontrado ', user);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return user;
+  }
+
+  async findAll(options: FindAllUsersDto): Promise<PaginatedResponseDto<User>> {
+    const { limit = 10, page = 1, role, email, is_active } = options;
 
     const offset = (page - 1) * limit;
-
     const qb = this.baseListQuery();
 
-    if (accessCriteria.is_active !== undefined) {
-      qb.andWhere('user.is_active = :isActive', {
-        isActive: accessCriteria.is_active,
-      });
+    if (is_active !== undefined) {
+      qb.andWhere('user.is_active = :isActive', { isActive: is_active });
     }
 
-    if (roleId) {
-      qb.andWhere('roles.id = :roleId', { roleId });
+    if (role) {
+      qb.andWhere('roles.name = :role', { role });
+    }
+    if (email) {
+      qb.andWhere('user.email ILIKE :email', { email: `%${email}%` });
     }
 
     qb.orderBy('user.created_at', 'DESC');
-
     const [data, total] = await qb.take(limit).skip(offset).getManyAndCount();
-
-    return {
-      data,
-      total,
-      limit,
-      page,
-    };
+    return { data, total, limit, page };
   }
 
   async setStatus(
@@ -273,7 +271,6 @@ export class UserService {
     });
 
     if (!user || !user.is_active) return false;
-
     return true;
   }
 }

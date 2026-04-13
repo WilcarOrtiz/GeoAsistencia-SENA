@@ -23,11 +23,9 @@ import {
   UserResponseWithRolesDto,
 } from './dto';
 import {
-  GetAccessCriteria,
   GetUser,
   PublicAccess,
   RequiredPermissions,
-  AccessCriteria,
 } from 'src/common/decorators';
 import { PermissionsGuard } from 'src/common/guard';
 import { plainToInstance } from 'class-transformer';
@@ -54,7 +52,6 @@ export class UserController {
     return { isActive };
   }
 
-  @PublicAccess()
   @Post()
   @ApiOperation({
     summary: 'Crear un nuevo usuario',
@@ -69,7 +66,6 @@ export class UserController {
     });
   }
 
-  @PublicAccess()
   @Patch(':id/roles')
   @ApiOperation({
     summary: 'Actualizar roles de un usuario',
@@ -86,7 +82,6 @@ export class UserController {
     });
   }
 
-  @PublicAccess()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar información básica del usuario',
@@ -104,7 +99,6 @@ export class UserController {
     });
   }
 
-  @PublicAccess()
   @Patch(':id/deactivate')
   @ApiOperation({
     summary: 'Desactivar usuario',
@@ -120,7 +114,6 @@ export class UserController {
     return await this.userService.setStatus(id, false);
   }
 
-  @PublicAccess()
   @Patch(':id/activate')
   @ApiOperation({
     summary: 'Activar usuario',
@@ -154,6 +147,18 @@ export class UserController {
     return await this.userService.getUserProfile(user);
   }
 
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Obtener un usuario',
+  })
+  @ApiOkResponse({ type: UserResponseWithRolesDto })
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const userInfo = await this.userService.findOne(id);
+    return plainToInstance(UserResponseWithRolesDto, userInfo, {
+      excludeExtraneousValues: true,
+    });
+  }
+
   @Get()
   @RequiredPermissions('ver_asignaturas')
   @UseGuards(PermissionsGuard)
@@ -170,12 +175,9 @@ export class UserController {
   @ApiOkResponse({ type: PaginatedUserResponseDto })
   async findAll(
     @Query() findAllUsersDto: FindAllUsersDto,
-    @GetAccessCriteria() accessCriteria: AccessCriteria,
   ): Promise<PaginatedUserResponseDto> {
-    const result = await this.userService.findAll(
-      findAllUsersDto,
-      accessCriteria,
-    );
+    console.log('query params:', findAllUsersDto);
+    const result = await this.userService.findAll(findAllUsersDto);
 
     return {
       ...result,
@@ -186,3 +188,6 @@ export class UserController {
     };
   }
 }
+
+//TODO: borrar todo lo referente a   GetAccessCriteria y AccessCriteria,
+// 1. revisar lo de la opocion de mandar correo de actualizaicon para un uesuario

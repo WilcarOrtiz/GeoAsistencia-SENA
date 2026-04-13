@@ -77,14 +77,6 @@ export class SubjectsService {
     return this.subjectRepo.save(subject);
   }
 
-  /*  async findAll(): Promise<Subject[]> {
-    return this.subjectRepo.find({
-      where: { is_active: true },
-      order: { name: 'ASC' },
-    });
-  }
-*/
-
   async findAll(
     options: PaginationDto,
   ): Promise<PaginatedResponseDto<Subject>> {
