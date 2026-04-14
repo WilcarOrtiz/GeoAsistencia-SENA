@@ -259,7 +259,7 @@ export class SemesterService {
   async remove(id: string): Promise<{ message: string }> {
     const semester = await this.semesterRepo.findOne({
       where: { id },
-      relations: { classGroups: true }, // 👈 carga la relación
+      relations: { classGroups: true },
     });
 
     if (!semester) throw new NotFoundException('Semestre no encontrado');
@@ -275,17 +275,20 @@ export class SemesterService {
     return { message: 'Semestre eliminado correctamente' };
   }
 
-  async findAllForSelect(): Promise<
-    { id: string; name: string; code: string }[]
-  > {
+  async findAllForSelect(
+    type: 'select' | 'filter',
+  ): Promise<{ id: string; name: string; code: string }[]> {
+    const where =
+      type === 'select'
+        ? {
+            is_active: true,
+            state: In([StateSemester.ACTIVE, StateSemester.PLANNED]),
+          }
+        : {};
+
     return await this.semesterRepo.find({
-      where: {
-        is_active: true,
-        state: In([StateSemester.ACTIVE, StateSemester.PLANNED]),
-      },
-      order: {
-        start_date: 'DESC',
-      },
+      where,
+      order: { start_date: 'DESC' },
       select: ['id', 'name', 'code'],
     });
   }

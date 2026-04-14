@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsUUID, Matches } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsUUID, Matches } from 'class-validator';
 import { WeekDay } from 'src/common/enums/weeyDay.enum';
 
 export class CreateClassDayDto {
@@ -16,15 +16,18 @@ export class CreateClassDayDto {
     message: 'La hora de fin debe tener formato HH:mm',
   })
   end_time: string;
+
   @ApiProperty({
     enum: WeekDay,
-    example: WeekDay.MONDAY,
+    isArray: true, // 👈 importante para Swagger
+    example: [WeekDay.MONDAY, WeekDay.WEDNESDAY],
   })
-  @IsNotEmpty({ message: 'El nombre del dia de clase es obligatorio' })
+  @IsArray({ message: 'Los días deben ser un arreglo' })
   @IsEnum(WeekDay, {
-    message: 'El estado del semestre no es válido',
+    message: 'Alguno de los días no es válido',
+    each: true,
   })
-  day: WeekDay;
+  days: WeekDay[];
 
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440002' })
   @IsNotEmpty({ message: 'El ID del grupo de clase es obligatorio' })

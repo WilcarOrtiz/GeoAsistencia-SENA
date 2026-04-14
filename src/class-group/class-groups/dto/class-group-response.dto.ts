@@ -53,6 +53,10 @@ export class ClassGroupResponseDto {
   @Expose()
   max_students: number;
 
+  @ApiProperty({ example: 30 })
+  @Expose()
+  total_students: number;
+
   @ApiProperty({ example: true })
   @Expose()
   is_active: boolean;

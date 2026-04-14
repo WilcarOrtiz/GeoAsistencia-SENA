@@ -29,6 +29,20 @@ export class ClassGroupsService {
       .leftJoin('group.semester', 'semester')
       .leftJoin('group.teacher', 'teacher')
       .leftJoin('teacher.user', 'user')
+      .leftJoin(
+        'group.enrollments',
+        'enrollment',
+        'enrollment.status = :status',
+        {
+          status: 'ACTIVE',
+        },
+      )
+      .loadRelationCountAndMap(
+        'group.total_students',
+        'group.enrollments',
+        'enrollment',
+        (qb) => qb.where('enrollment.status = :status', { status: 'ACTIVE' }),
+      )
       .select([
         'group.id',
         'group.code',
@@ -36,15 +50,14 @@ export class ClassGroupsService {
         'group.academic_year',
         'group.max_students',
         'group.is_active',
-        'subject.id',
         'group.created_at',
+        'subject.id',
         'subject.name',
         'semester.id',
         'semester.name',
         'teacher.auth_id',
         'user.first_name',
         'user.middle_name',
-
         'user.last_name',
         'user.second_last_name',
       ]);
@@ -121,11 +134,17 @@ export class ClassGroupsService {
       terms.forEach((word, index) => {
         qb.andWhere(
           `(
-          group.code ILIKE :term${index} OR
-          group.name ILIKE :term${index} OR
-          subject.name ILIKE :term${index} OR
-          semester.name ILIKE :term${index}
-        )`,
+    group.code ILIKE :term${index} OR
+    group.name ILIKE :term${index} OR
+    subject.name ILIKE :term${index} OR
+    semester.name ILIKE :term${index} OR
+    CONCAT(
+      user.first_name, ' ',
+      COALESCE(user.middle_name, ''), ' ',
+      user.last_name, ' ',
+      COALESCE(user.second_last_name, '')
+    ) ILIKE :term${index}
+  )`,
           { [`term${index}`]: `%${word}%` },
         );
       });
@@ -134,37 +153,40 @@ export class ClassGroupsService {
     qb.orderBy('group.created_at', 'DESC').take(limit).skip(offset);
 
     const [data, total] = await qb.getManyAndCount();
-    const mapped = data.map((group) => ({
-      id: group.id,
-      code: group.code,
-      name: group.name,
-      academic_year: group.academic_year,
-      max_students: group.max_students,
-      is_active: group.is_active,
-      created_at: group.created_at,
+    const mapped = data.map(
+      (group: ClassGroup & { total_students?: number }) => ({
+        id: group.id,
+        code: group.code,
+        name: group.name,
+        academic_year: group.academic_year,
+        max_students: group.max_students,
+        total_students: group.total_students ?? 0,
+        is_active: group.is_active,
+        created_at: group.created_at,
 
-      subject: group.subject
-        ? { id: group.subject.id, name: group.subject.name }
-        : null,
+        subject: group.subject
+          ? { id: group.subject.id, name: group.subject.name }
+          : null,
 
-      semester: group.semester
-        ? { id: group.semester.id, name: group.semester.name }
-        : null,
+        semester: group.semester
+          ? { id: group.semester.id, name: group.semester.name }
+          : null,
 
-      teacher: group.teacher
-        ? {
-            id: group.teacher.auth_id,
-            name: [
-              group.teacher.user?.first_name,
-              group.teacher.user?.middle_name,
-              group.teacher.user?.last_name,
-              group.teacher.user?.second_last_name,
-            ]
-              .filter(Boolean)
-              .join(' '),
-          }
-        : null,
-    }));
+        teacher: group.teacher
+          ? {
+              id: group.teacher.auth_id,
+              name: [
+                group.teacher.user?.first_name,
+                group.teacher.user?.middle_name,
+                group.teacher.user?.last_name,
+                group.teacher.user?.second_last_name,
+              ]
+                .filter(Boolean)
+                .join(' '),
+            }
+          : null,
+      }),
+    );
 
     return {
       data: mapped,

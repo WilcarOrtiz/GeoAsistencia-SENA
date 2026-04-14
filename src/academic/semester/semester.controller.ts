@@ -89,10 +89,10 @@ export class SemesterController {
   @ApiOperation({
     summary: 'Listar semestres para select',
     description:
-      'Obtiene los semestres activos o planeados para uso en selects (creación de grupos)',
+      'Obtiene los semestres activos o planeados para uso en selects (creación de grupos) tenemos type o filter',
   })
-  async findAllForSelect() {
-    return await this.semesterService.findAllForSelect();
+  async findAllForSelect(@Query('type') type: 'select' | 'filter' = 'select') {
+    return await this.semesterService.findAllForSelect(type);
   }
 
   @Get(':term')

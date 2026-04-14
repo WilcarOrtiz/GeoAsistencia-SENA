@@ -14,8 +14,8 @@ export class ClassDaysService {
     private readonly classGroupsService: ClassGroupsService,
   ) {}
 
-  async create(createClassDayDto: CreateClassDayDto): Promise<ClassDays> {
-    const { start_time, end_time, classGroup_id, day } = createClassDayDto;
+  async create(dto: CreateClassDayDto): Promise<ClassDays[]> {
+    const { start_time, end_time, classGroup_id, days } = dto;
 
     const classGroup =
       await this.classGroupsService.findActiveGroup(classGroup_id);
@@ -26,29 +26,33 @@ export class ClassDaysService {
       );
     }
 
-    const existing = await this.classDaysRepo.findOne({
-      where: {
-        classGroup: { id: classGroup_id },
-        day,
+    const results: ClassDays[] = [];
+
+    for (const day of days) {
+      const existing = await this.classDaysRepo.findOne({
+        where: {
+          classGroup: { id: classGroup_id },
+          day,
+          start_time,
+          end_time,
+        },
+      });
+
+      if (existing) {
+        continue; // 👈 o throw si quieres strict mode
+      }
+
+      const classDay = this.classDaysRepo.create({
         start_time,
         end_time,
-      },
-    });
+        classGroup,
+        day,
+      });
 
-    if (existing) {
-      throw new BadRequestException(
-        `El grupo ya tiene un horario el ${getWeekDayLabel(day)}  de ${start_time} a ${end_time}`,
-      );
+      results.push(await this.classDaysRepo.save(classDay));
     }
 
-    const classDay = this.classDaysRepo.create({
-      start_time,
-      end_time,
-      classGroup,
-      day,
-    });
-
-    return await this.classDaysRepo.save(classDay);
+    return results;
   }
 
   async validateDayClassInSession(groupId: string) {

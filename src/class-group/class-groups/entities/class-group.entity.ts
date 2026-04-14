@@ -36,7 +36,7 @@ export class ClassGroup {
   @Column({ type: 'varchar', length: 6 })
   code: string;
 
-  @Column({ type: 'citext', unique: true })
+  @Column({ type: 'citext' })
   name: string;
 
   @Column({ type: 'int4' })

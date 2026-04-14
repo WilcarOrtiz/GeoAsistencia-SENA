@@ -35,7 +35,7 @@ export class ClassGroupsController {
   @ApiOkResponse({ type: PaginatedClassGroupResponseDto })
   async findAll(@Query() query: FindAllClaasGroupsDto) {
     const result = await this.classGroupsService.findAll(query);
-
+    console.log('consulta:', result);
     return {
       ...result,
       data: plainToInstance(ClassGroupResponseDto, result.data, {
