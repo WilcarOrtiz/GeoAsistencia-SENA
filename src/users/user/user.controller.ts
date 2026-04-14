@@ -176,7 +176,6 @@ export class UserController {
   async findAll(
     @Query() findAllUsersDto: FindAllUsersDto,
   ): Promise<PaginatedUserResponseDto> {
-    console.log('query params:', findAllUsersDto);
     const result = await this.userService.findAll(findAllUsersDto);
 
     return {

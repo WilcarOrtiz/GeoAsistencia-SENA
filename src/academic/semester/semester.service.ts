@@ -275,6 +275,21 @@ export class SemesterService {
     return { message: 'Semestre eliminado correctamente' };
   }
 
+  async findAllForSelect(): Promise<
+    { id: string; name: string; code: string }[]
+  > {
+    return await this.semesterRepo.find({
+      where: {
+        is_active: true,
+        state: In([StateSemester.ACTIVE, StateSemester.PLANNED]),
+      },
+      order: {
+        start_date: 'DESC',
+      },
+      select: ['id', 'name', 'code'],
+    });
+  }
+
   async removeSeed(manager: EntityManager): Promise<void> {
     const repo = manager.getRepository(Semester);
     await repo.createQueryBuilder().delete().execute();

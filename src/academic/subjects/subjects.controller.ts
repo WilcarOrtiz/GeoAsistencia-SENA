@@ -35,6 +35,16 @@ export class SubjectsController {
     });
   }
 
+  @Get('/all')
+  @ApiOperation({
+    summary: 'Listar asignaturas para select',
+    description:
+      'Obtiene las asignaturas activas para uso en selects (creación de grupos)',
+  })
+  async findAllForSelect() {
+    return await this.subjectsService.findAllForSelect();
+  }
+
   @Get(':term')
   @ApiOperation({
     summary: 'obtener asignatura',

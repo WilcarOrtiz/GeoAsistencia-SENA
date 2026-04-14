@@ -123,6 +123,20 @@ export class SubjectsService {
     return { message: 'Asignatura desactivada correctamente' };
   }
 
+  async findAllForSelect(): Promise<
+    { id: string; name: string; code: string }[]
+  > {
+    return await this.subjectRepo.find({
+      where: {
+        is_active: true,
+      },
+      order: {
+        name: 'ASC',
+      },
+      select: ['id', 'name', 'code'],
+    });
+  }
+
   async removeSeed(manager: EntityManager): Promise<void> {
     const repo = manager.getRepository(Subject);
     await repo.createQueryBuilder().delete().execute();

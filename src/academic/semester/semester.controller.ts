@@ -85,6 +85,16 @@ export class SemesterController {
     return await this.semesterService.changeState(id, dto.state);
   }
 
+  @Get('/all')
+  @ApiOperation({
+    summary: 'Listar semestres para select',
+    description:
+      'Obtiene los semestres activos o planeados para uso en selects (creación de grupos)',
+  })
+  async findAllForSelect() {
+    return await this.semesterService.findAllForSelect();
+  }
+
   @Get(':term')
   @ApiOperation({
     summary: 'obtener semestre',

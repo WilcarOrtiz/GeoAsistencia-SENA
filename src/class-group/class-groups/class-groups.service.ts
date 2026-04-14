@@ -10,6 +10,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { SemesterService } from 'src/academic/semester/semester.service';
 import { SubjectsService } from 'src/academic/subjects/subjects.service';
 import { TeacherService } from 'src/users/teacher/teacher.service';
+import { FindAllClaasGroupsDto } from './dto/find-all-classgroup.dto';
 
 @Injectable()
 export class ClassGroupsService {
@@ -20,6 +21,34 @@ export class ClassGroupsService {
     private readonly subjectService: SubjectsService,
     private readonly teacherService: TeacherService,
   ) {}
+
+  private baseListQuery() {
+    return this.classGroupRepo
+      .createQueryBuilder('group')
+      .leftJoin('group.subject', 'subject')
+      .leftJoin('group.semester', 'semester')
+      .leftJoin('group.teacher', 'teacher')
+      .leftJoin('teacher.user', 'user')
+      .select([
+        'group.id',
+        'group.code',
+        'group.name',
+        'group.academic_year',
+        'group.max_students',
+        'group.is_active',
+        'subject.id',
+        'group.created_at',
+        'subject.name',
+        'semester.id',
+        'semester.name',
+        'teacher.auth_id',
+        'user.first_name',
+        'user.middle_name',
+
+        'user.last_name',
+        'user.second_last_name',
+      ]);
+  }
 
   async create(createClassGroupDto: CreateClassGroupDto): Promise<ClassGroup> {
     const { code, name, subject_id, semester_id, teacher_id, max_students } =
@@ -66,6 +95,98 @@ export class ClassGroupsService {
   async removeSeed(manager: EntityManager): Promise<void> {
     const repo = manager.getRepository(ClassGroup);
     await repo.createQueryBuilder().delete().execute();
+  }
+
+  async findAll(options: FindAllClaasGroupsDto) {
+    const { limit = 10, page = 1, semester, subject, term } = options;
+    const offset = (page - 1) * limit;
+
+    const qb = this.baseListQuery();
+
+    if (semester) {
+      qb.andWhere('semester.id = :semesterId', {
+        semesterId: semester,
+      });
+    }
+
+    if (subject) {
+      qb.andWhere('subject.id = :subjectId', {
+        subjectId: subject,
+      });
+    }
+
+    if (term) {
+      const terms = term.split(' ').filter((t) => t.trim() !== '');
+
+      terms.forEach((word, index) => {
+        qb.andWhere(
+          `(
+          group.code ILIKE :term${index} OR
+          group.name ILIKE :term${index} OR
+          subject.name ILIKE :term${index} OR
+          semester.name ILIKE :term${index}
+        )`,
+          { [`term${index}`]: `%${word}%` },
+        );
+      });
+    }
+
+    qb.orderBy('group.created_at', 'DESC').take(limit).skip(offset);
+
+    const [data, total] = await qb.getManyAndCount();
+    const mapped = data.map((group) => ({
+      id: group.id,
+      code: group.code,
+      name: group.name,
+      academic_year: group.academic_year,
+      max_students: group.max_students,
+      is_active: group.is_active,
+      created_at: group.created_at,
+
+      subject: group.subject
+        ? { id: group.subject.id, name: group.subject.name }
+        : null,
+
+      semester: group.semester
+        ? { id: group.semester.id, name: group.semester.name }
+        : null,
+
+      teacher: group.teacher
+        ? {
+            id: group.teacher.auth_id,
+            name: [
+              group.teacher.user?.first_name,
+              group.teacher.user?.middle_name,
+              group.teacher.user?.last_name,
+              group.teacher.user?.second_last_name,
+            ]
+              .filter(Boolean)
+              .join(' '),
+          }
+        : null,
+    }));
+
+    return {
+      data: mapped,
+      total,
+      limit,
+      page,
+    };
+  }
+
+  async findOne(id: string) {
+    const group = await this.classGroupRepo
+      .createQueryBuilder('group')
+      .leftJoinAndSelect('group.subject', 'subject')
+      .leftJoinAndSelect('group.semester', 'semester')
+      .leftJoinAndSelect('group.teacher', 'teacher')
+      .leftJoinAndSelect('teacher.user', 'user')
+      .leftJoinAndSelect('group.classDays', 'classDays')
+      .where('group.id = :id', { id })
+      .getOne();
+
+    if (!group) throw new NotFoundException('Grupo no encontrado');
+    return group;
   }
 
   async findActiveGroupWithSubject(id: string): Promise<ClassGroup> {

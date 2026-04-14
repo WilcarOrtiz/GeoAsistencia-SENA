@@ -27,6 +27,38 @@ export class TeacherService {
     return teacher;
   }
 
+  async findAllActive() {
+    const data = await this.teacherRepo.find({
+      where: { is_active: true },
+      relations: ['user'],
+      select: {
+        auth_id: true,
+        user: {
+          first_name: true,
+          middle_name: true,
+          last_name: true,
+          second_last_name: true,
+          ID_user: true,
+        },
+      },
+    });
+
+    const result = data.map((teacher) => ({
+      id: teacher.auth_id,
+      name: [
+        teacher.user.first_name,
+        teacher.user.middle_name,
+        teacher.user.last_name,
+        teacher.user.second_last_name,
+      ]
+        .filter(Boolean)
+        .join(' '),
+      document: teacher.user.ID_user,
+    }));
+
+    return { data: result };
+  }
+
   async removeSeed(manager: EntityManager): Promise<void> {
     const repo = manager.getRepository(Teacher);
     await repo.createQueryBuilder().delete().execute();
