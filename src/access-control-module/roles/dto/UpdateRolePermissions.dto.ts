@@ -5,11 +5,11 @@ export class UpdateRolePermissions {
   @ApiProperty()
   @IsUUID()
   @IsNotEmpty()
-  roleId: string;
+  roleId!: string;
 
   @ApiProperty()
   @IsArray()
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un permiso' })
   @IsUUID('4', { each: true, message: 'ID de permiso no válido' })
-  permissionIds: string[];
+  permissionIds!: string[];
 }

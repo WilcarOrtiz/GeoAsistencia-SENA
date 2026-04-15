@@ -19,28 +19,28 @@ import {
 @Entity('SUBJECTS')
 export class Subject {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ type: 'citext', unique: true })
-  code: string;
+  code!: string;
 
   @Column({ type: 'citext', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 
   @OneToMany(() => ClassGroup, (classGroup) => classGroup.subject)
-  classGroups: ClassGroup[];
+  classGroups!: ClassGroup[];
 
   @BeforeInsert()
   @BeforeUpdate()

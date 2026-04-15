@@ -20,14 +20,14 @@ export class CreateUserDto {
   @Length(8, 11, {
     message: 'La identificación debe tener entre 8 y 11 dígitos',
   })
-  ID: string;
+  ID!: string;
 
   @ApiProperty({ example: 'Wilcar' })
   @IsNotEmpty({ message: 'El primer nombre es obligatorio' })
   @Length(1, 15, {
     message: 'El nombre debe tener entre 1 y 15 caracteres',
   })
-  first_name: string;
+  first_name!: string;
 
   @ApiProperty({ example: 'Daniel', required: false })
   @IsOptional()
@@ -41,7 +41,7 @@ export class CreateUserDto {
   @Length(1, 15, {
     message: 'El primer apellido debe tener entre 1 y 15 caracteres',
   })
-  last_name: string;
+  last_name!: string;
 
   @ApiProperty({ example: 'Colpas', required: false })
   @IsOptional()
@@ -53,11 +53,11 @@ export class CreateUserDto {
   @ApiProperty({ example: 'ortizcolpaswilcardaniel@gmail.com' })
   @IsNotEmpty({ message: 'El correo es obligatorio' })
   @IsEmail({}, { message: 'Correo electrónico no válido' })
-  email: string;
+  email!: string;
 
   @ApiProperty({})
   @IsArray()
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un rol' })
   @IsUUID('4', { each: true, message: 'ID de rol no válido' })
-  rolesID: string[];
+  rolesID!: string[];
 }

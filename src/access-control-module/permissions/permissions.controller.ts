@@ -7,7 +7,7 @@ import {
 import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { PublicAccess } from 'src/common/decorators';
 import { PermissionResponseDto } from './dto/permission-response.dto';
-import { plainToInstance } from 'class-transformer';
+import { toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
 @ApiBearerAuth('access-token')
 @PublicAccess()
@@ -17,10 +17,10 @@ export class PermissionsController {
 
   @Get('matrix')
   @ApiOperation({
-    summary: 'Listado de permisos para matriz de roles',
+    summary: 'Listar permisos',
   })
   @ApiOkResponse({
-    description: 'Listado paginado de permisos',
+    description: 'Lista los permisos para ser usado en la matrix de roles',
   })
   async findAllForMatrix(
     @Query() paginationDto: PaginationDto,
@@ -30,12 +30,6 @@ export class PermissionsController {
       withRoles: true,
     });
 
-    return {
-      ...result,
-      data: plainToInstance(PermissionResponseDto, result.data, {
-        excludeExtraneousValues: true,
-        enableImplicitConversion: true,
-      }),
-    };
+    return toPaginatedDto(PermissionResponseDto, result);
   }
 }

@@ -9,7 +9,7 @@ export class CreateSemesterDto {
   @Length(3, 30, {
     message: 'El nombre debe tener entre 3 y 30 caracteres',
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: '2025-01-15' })
   @IsNotEmpty({ message: 'La fecha de inicio es obligatoria' })
@@ -18,7 +18,7 @@ export class CreateSemesterDto {
   @MinDate(new Date('2020-01-01'), {
     message: 'La fecha de inicio no puede ser anterior al año 2020',
   })
-  startDate: Date;
+  startDate!: Date;
 
   @ApiProperty({ example: '2025-06-30' })
   @IsNotEmpty({ message: 'La fecha de finalización es obligatoria' })
@@ -27,7 +27,7 @@ export class CreateSemesterDto {
   @MinDate(new Date('2020-01-01'), {
     message: 'La fecha de finalización no puede ser anterior al año 2020',
   })
-  endDate: Date;
+  endDate!: Date;
 
   @ApiProperty({
     enum: StateSemester,
@@ -37,5 +37,5 @@ export class CreateSemesterDto {
   @IsEnum(StateSemester, {
     message: 'El estado del semestre no es válido',
   })
-  state: StateSemester;
+  state!: StateSemester;
 }

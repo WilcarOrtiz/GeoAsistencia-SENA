@@ -20,29 +20,29 @@ import {
 @Entity('USERS')
 export class User {
   @PrimaryColumn('uuid')
-  auth_id: string;
+  auth_id!: string;
 
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 11, nullable: false })
-  ID_user: string;
+  ID_user!: string;
 
   @Column({ type: 'varchar', nullable: false, length: 30 })
-  first_name: string;
+  first_name!: string;
 
   @Column({ type: 'varchar', nullable: true, length: 30 })
   middle_name?: string;
 
   @Column({ type: 'varchar', nullable: false, length: 30 })
-  last_name: string;
+  last_name!: string;
 
   @Column({ type: 'varchar', nullable: true, length: 30 })
   second_last_name?: string;
 
   @Column({ default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'RESTRICT',
@@ -58,19 +58,19 @@ export class User {
       referencedColumnName: 'id',
     },
   })
-  roles: Role[];
+  roles!: Role[];
 
   @OneToOne(() => Student, (student) => student.user)
-  student: Student;
+  student!: Student;
 
   @OneToOne(() => Teacher, (teacher) => teacher.user)
-  teacher: Teacher;
+  teacher!: Teacher;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 
   get fullName(): string {
     return [

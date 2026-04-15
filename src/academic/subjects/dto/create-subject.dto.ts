@@ -7,12 +7,12 @@ export class CreateSubjectDto {
   @Length(3, 30, {
     message: 'El nombre debe tener entre 3 y 30 caracteres',
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'PRO234' })
   @IsNotEmpty({ message: 'El codigo es obligatorio' })
   @Length(3, 10, {
     message: 'El codigo debe tener entre 3 y 10 caracteres',
   })
-  code: string;
+  code!: string;
 }

@@ -6,5 +6,5 @@ export class UpdateRolesUserDto {
   @IsArray()
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un rol' })
   @IsUUID('4', { each: true, message: 'ID de rol no válido' })
-  rolesID: string[];
+  rolesID!: string[];
 }

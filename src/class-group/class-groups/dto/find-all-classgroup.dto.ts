@@ -6,7 +6,7 @@ export class FindAllClaasGroupsDto extends PaginationDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  term?: string; // referente a codigo o al name
+  term?: string;
 
   @ApiPropertyOptional({ example: 'semestre-2016' })
   @IsOptional()

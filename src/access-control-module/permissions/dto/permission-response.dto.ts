@@ -5,15 +5,15 @@ import { RoleResponseDto } from 'src/access-control-module/roles/dto/roles-respo
 export class PermissionSimpleResponseDto {
   @ApiProperty({ example: '7d2e3450-e29b-41d4-a716-446655440000' })
   @Expose()
-  id: string;
+  id!: string;
 
   @ApiProperty({ example: 'CREATE_USER' })
   @Expose()
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'Permite crear nuevos usuarios en el sistema' })
   @Expose()
-  description: string;
+  description!: string;
 }
 
 export class PermissionResponseDto extends PermissionSimpleResponseDto {

@@ -10,5 +10,5 @@ export class ChangeSemesterStateDto {
     example: StateSemester.ACTIVE,
   })
   @IsEnum(StateSemester)
-  state: StateSemester;
+  state!: StateSemester;
 }

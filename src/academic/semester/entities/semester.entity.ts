@@ -24,20 +24,20 @@ import {
 @Index(['academic_year', 'term'], { unique: true })
 export class Semester {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 6 })
-  code: string;
+  code!: string;
 
   @Column({ type: 'citext', unique: true })
-  name: string;
+  name!: string;
 
   @Column({ type: 'int4' })
-  academic_year: number;
+  academic_year!: number;
 
   @Column({ type: 'int2' })
-  term: number;
+  term!: number;
 
   @Column({
     type: 'date',
@@ -46,7 +46,7 @@ export class Semester {
       from: (value: string) => new Date(value),
     },
   })
-  start_date: Date;
+  start_date!: Date;
 
   @Column({
     type: 'date',
@@ -55,28 +55,28 @@ export class Semester {
       from: (value: string) => new Date(value),
     },
   })
-  end_date: Date;
+  end_date!: Date;
 
   @Column({
     type: 'enum',
     enum: StateSemester,
     default: StateSemester.ACTIVE,
   })
-  state: StateSemester;
+  state!: StateSemester;
 
   @Column({ type: 'boolean', default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 
   @OneToMany(() => ClassGroup, (classGroup) => classGroup.semester)
-  classGroups: ClassGroup[];
+  classGroups!: ClassGroup[];
 
   @BeforeInsert()
   @BeforeUpdate()

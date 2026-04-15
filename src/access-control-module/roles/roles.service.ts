@@ -3,9 +3,9 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { UpdateRolePermissions } from './dto/UpdateRolePermissions.dto';
-import { IRoleSystemCreate } from './interface';
 import { Role } from './entities/role.entity';
 import { Permission } from '../permissions/entities/permission.entity';
+import { IRoleSystemCreate } from './interface/role-system.interface';
 
 @Injectable()
 export class RolesService {

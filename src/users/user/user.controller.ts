@@ -12,25 +12,16 @@ import {
 import { UserService } from './service/user.service';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
-import {
-  CreateUserDto,
-  FindAllUsersDto,
-  PaginatedUserResponseDto,
-  UpdateRolesUserDto,
-  UpdateUserDto,
-  UserBaseResponseDto,
-  UserMeResponseDto,
-  UserResponseWithRolesDto,
-} from './dto';
+import * as DTO from './dto';
 import {
   GetUser,
   PublicAccess,
   RequiredPermissions,
 } from 'src/common/decorators';
 import { PermissionsGuard } from 'src/common/guard';
-import { plainToInstance } from 'class-transformer';
 import { RoleListItemDto } from 'src/access-control-module/roles/dto/roles-response.dto';
 import type { ICurrentUser } from 'src/common/interface/current-user.interface';
+import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
 @ApiBearerAuth('access-token')
 @Controller('user')
@@ -40,9 +31,9 @@ export class UserController {
   @PublicAccess()
   @Get('is-active')
   @ApiOperation({
-    summary: 'Verificar si un usuario está activo',
+    summary: 'Verificar usuario activo',
     description:
-      'Recibe un correo y devuelve true o false si el usuario está activo.',
+      'Verificar si un usuario está activo, Recibe un correo y devuelve true o false si el usuario está activo.',
   })
   @ApiOkResponse({
     schema: { example: { isActive: true } },
@@ -54,16 +45,16 @@ export class UserController {
 
   @Post()
   @ApiOperation({
-    summary: 'Crear un nuevo usuario',
+    summary: 'Registrar usuario',
     description:
-      'Crea un usuario en Supabase Auth y registra su información base en la base de datos. Asigna los roles indicados.',
+      'Registra un usuario en Supabase Auth y registra su información base en la base de datos. Asigna los roles indicados.',
   })
-  @ApiOkResponse({ type: UserResponseWithRolesDto })
-  async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.userService.createUser(createUserDto);
-    return plainToInstance(UserResponseWithRolesDto, user, {
-      excludeExtraneousValues: true,
-    });
+  @ApiOkResponse({ type: DTO.UserResponseWithRolesDto })
+  async create(@Body() dto: DTO.CreateUserDto) {
+    return toDto(
+      DTO.UserResponseWithRolesDto,
+      await this.userService.createUser(dto),
+    );
   }
 
   @Patch(':id/roles')
@@ -74,12 +65,12 @@ export class UserController {
   @ApiOkResponse({ type: [RoleListItemDto] })
   async updateUserRoles(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateRolesUserDto: UpdateRolesUserDto,
+    @Body() updateRolesUserDto: DTO.UpdateRolesUserDto,
   ) {
-    const user = await this.userService.updateRoles(id, updateRolesUserDto);
-    return plainToInstance(RoleListItemDto, user, {
-      excludeExtraneousValues: true,
-    });
+    return toDto(
+      RoleListItemDto,
+      await this.userService.updateRoles(id, updateRolesUserDto),
+    );
   }
 
   @Patch(':id')
@@ -88,15 +79,15 @@ export class UserController {
     description:
       'Actualiza los datos base del usuario (nombres, apellidos, estado, etc.) utilizando su auth_id. No modifica roles ni credenciales de autenticación.',
   })
-  @ApiOkResponse({ type: UserBaseResponseDto })
+  @ApiOkResponse({ type: DTO.UserBaseResponseDto })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() dto: DTO.UpdateUserDto,
   ) {
-    const userInfo = await this.userService.update(id, updateUserDto);
-    return plainToInstance(UserBaseResponseDto, userInfo, {
-      excludeExtraneousValues: true,
-    });
+    return toDto(
+      DTO.UserBaseResponseDto,
+      await this.userService.update(id, dto),
+    );
   }
 
   @Patch(':id/deactivate')
@@ -142,7 +133,7 @@ export class UserController {
   * **Nombre Completo:** Campo calculado que concatena nombre y apellidos.
   `,
   })
-  @ApiOkResponse({ type: UserMeResponseDto })
+  @ApiOkResponse({ type: DTO.UserMeResponseDto })
   async getProfile(@GetUser() user: ICurrentUser) {
     return await this.userService.getUserProfile(user);
   }
@@ -151,12 +142,12 @@ export class UserController {
   @ApiOperation({
     summary: 'Obtener un usuario',
   })
-  @ApiOkResponse({ type: UserResponseWithRolesDto })
+  @ApiOkResponse({ type: DTO.UserResponseWithRolesDto })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const userInfo = await this.userService.findOne(id);
-    return plainToInstance(UserResponseWithRolesDto, userInfo, {
-      excludeExtraneousValues: true,
-    });
+    return toDto(
+      DTO.UserResponseWithRolesDto,
+      await this.userService.findOne(id),
+    );
   }
 
   @Get()
@@ -166,25 +157,17 @@ export class UserController {
     summary: 'Listar usuarios',
     description: `
     Obtiene una lista paginada de usuarios con soporte para:.
-
-* **1:** Inclusión opcional de usuarios inactivos.
-* **2:** Filtro por rol.
-* **3:** Paginación (page, limit).
-`,
+    * **1:** Inclusión opcional de usuarios inactivos.
+    * **2:** Filtro por rol.
+    * **3:** Paginación (page, limit).
+    `,
   })
-  @ApiOkResponse({ type: PaginatedUserResponseDto })
+  @ApiOkResponse({ type: DTO.PaginatedUserResponseDto })
   async findAll(
-    @Query() findAllUsersDto: FindAllUsersDto,
-  ): Promise<PaginatedUserResponseDto> {
+    @Query() findAllUsersDto: DTO.FindAllUsersDto,
+  ): Promise<DTO.PaginatedUserResponseDto> {
     const result = await this.userService.findAll(findAllUsersDto);
-
-    return {
-      ...result,
-      data: plainToInstance(UserResponseWithRolesDto, result.data, {
-        excludeExtraneousValues: true,
-        enableImplicitConversion: true,
-      }),
-    };
+    return toPaginatedDto(DTO.UserResponseWithRolesDto, result);
   }
 }
 

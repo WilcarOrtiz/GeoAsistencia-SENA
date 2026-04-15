@@ -12,32 +12,32 @@ import {
 @Entity('MENU_ITEMS')
 export class Menu {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'citext', nullable: false })
-  name: string;
+  name!: string;
 
   @Column({ nullable: true })
-  route: string;
+  route!: string;
 
   @Column({ nullable: true })
-  icon: string;
+  icon!: string;
 
   @Column({ default: 0 })
-  order_index: number;
+  order_index!: number;
 
   @ManyToOne(() => Permission, { nullable: true })
   @JoinColumn({ name: 'permission_id' })
-  permission: Permission;
+  permission!: Permission;
 
   @Index()
   @Column({ nullable: true })
-  parent_id: string;
+  parent_id!: string;
 
   @ManyToOne(() => Menu, (menu) => menu.children, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'parent_id' })
-  parent: Menu;
+  parent!: Menu;
 
   @OneToMany(() => Menu, (menu) => menu.parent)
-  children: Menu[];
+  children!: Menu[];
 }

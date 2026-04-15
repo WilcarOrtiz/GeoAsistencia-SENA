@@ -15,7 +15,7 @@ import { Exclude } from 'class-transformer';
 @Entity('ROLES')
 export class Role {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'enum',
@@ -23,13 +23,13 @@ export class Role {
     unique: true,
     nullable: false,
   })
-  name: ValidRole;
+  name!: ValidRole;
 
   @Column({ length: 50, unique: true, nullable: false })
-  description: string;
+  description!: string;
 
   @Column({ default: true, nullable: false })
-  is_active: boolean;
+  is_active!: boolean;
 
   @ManyToMany(() => Permission, (permission) => permission.roles, {
     onDelete: 'RESTRICT',
@@ -45,16 +45,16 @@ export class Role {
       referencedColumnName: 'id',
     },
   })
-  permissions: Permission[];
+  permissions!: Permission[];
 
   @ManyToMany(() => User, (user) => user.roles)
-  users: User[];
+  users!: User[];
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 }

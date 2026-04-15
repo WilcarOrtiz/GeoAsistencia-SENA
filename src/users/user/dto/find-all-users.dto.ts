@@ -10,7 +10,6 @@ export class FindAllUsersDto extends PaginationDto {
   @IsString()
   role?: string;
 
-  // 👇 Agrega estos dos
   @ApiPropertyOptional({ example: 'john@mail.com' })
   @IsOptional()
   @IsString()

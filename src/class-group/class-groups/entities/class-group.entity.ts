@@ -30,58 +30,58 @@ import { Enrollment } from 'src/class-group/enrollment/entities/enrollment.entit
 @Unique(['semester', 'subject', 'name'])
 export class ClassGroup {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 6 })
-  code: string;
+  code!: string;
 
   @Column({ type: 'citext' })
-  name: string;
+  name!: string;
 
   @Column({ type: 'int4' })
-  academic_year: number;
+  academic_year!: number;
 
   @Column({ type: 'int2', nullable: true })
-  max_students: number;
+  max_students!: number;
 
   @Column({ type: 'boolean', default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Exclude()
   @CreateDateColumn({ type: 'timestamptz' })
-  created_at: Date;
+  created_at!: Date;
 
   @Exclude()
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 
   @ManyToOne(() => Subject, (subject) => subject.classGroups, {
     nullable: false,
   })
   @JoinColumn({ name: 'subject_id' })
-  subject: Subject;
+  subject!: Subject;
 
   @ManyToOne(() => Semester, (semester) => semester.classGroups, {
     nullable: false,
   })
   @JoinColumn({ name: 'semester_id' })
-  semester: Semester;
+  semester!: Semester;
 
   @OneToMany(() => ClassDays, (classDay) => classDay.classGroup)
-  classDays: ClassDays[];
+  classDays!: ClassDays[];
 
   @OneToMany(() => ClassSessions, (classSession) => classSession.classGroup)
-  classSessions: ClassSessions[];
+  classSessions!: ClassSessions[];
 
   @ManyToOne(() => Teacher, (teacher) => teacher.classGroups, {
     nullable: true,
   })
   @JoinColumn({ name: 'teacher_id' })
-  teacher: Teacher;
+  teacher!: Teacher;
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.classGroup)
-  enrollments: Enrollment[];
+  enrollments!: Enrollment[];
 
   @BeforeInsert()
   @BeforeUpdate()

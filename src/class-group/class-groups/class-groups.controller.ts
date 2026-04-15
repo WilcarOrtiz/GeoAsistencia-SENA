@@ -4,11 +4,9 @@ import { CreateClassGroupDto } from './dto/create-class-group.dto';
 import { PublicAccess } from 'src/common/decorators';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { FindAllClaasGroupsDto } from './dto/find-all-classgroup.dto';
-import {
-  ClassGroupResponseDto,
-  PaginatedClassGroupResponseDto,
-} from './dto/class-group-response.dto';
-import { plainToInstance } from 'class-transformer';
+import * as DTO from './dto/class-group-response.dto';
+
+import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
 @PublicAccess()
 @Controller('class-groups')
@@ -17,14 +15,14 @@ export class ClassGroupsController {
 
   @Post()
   @ApiOperation({
-    summary: 'Crear grupo de clase',
+    summary: 'Registrar grupo de clase',
   })
-  @ApiOkResponse({ type: ClassGroupResponseDto })
-  async create(@Body() createClassGroupDto: CreateClassGroupDto) {
-    const result = await this.classGroupsService.create(createClassGroupDto);
-    return plainToInstance(ClassGroupResponseDto, result, {
-      excludeExtraneousValues: true,
-    });
+  @ApiOkResponse({ type: DTO.ClassGroupResponseDto })
+  async create(@Body() dto: CreateClassGroupDto) {
+    return toDto(
+      DTO.ClassGroupResponseDto,
+      await this.classGroupsService.create(dto),
+    );
   }
 
   @Get()
@@ -32,17 +30,10 @@ export class ClassGroupsController {
     summary: 'Listar grupos de clase',
     description: 'Obtiene los grupos de clase con paginación',
   })
-  @ApiOkResponse({ type: PaginatedClassGroupResponseDto })
+  @ApiOkResponse({ type: DTO.PaginatedClassGroupResponseDto })
   async findAll(@Query() query: FindAllClaasGroupsDto) {
     const result = await this.classGroupsService.findAll(query);
-    console.log('consulta:', result);
-    return {
-      ...result,
-      data: plainToInstance(ClassGroupResponseDto, result.data, {
-        excludeExtraneousValues: true,
-        enableImplicitConversion: true,
-      }),
-    };
+    return toPaginatedDto(DTO.ClassGroupResponseDto, result);
   }
 
   @Get(':id')
