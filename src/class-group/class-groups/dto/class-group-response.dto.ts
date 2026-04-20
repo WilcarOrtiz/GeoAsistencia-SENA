@@ -30,6 +30,10 @@ export class ClassGroupResponseDto {
   @Expose()
   total_students!: number;
 
+  @ApiProperty({ example: 5 })
+  @Expose()
+  total_sessions!: number;
+
   @ApiProperty({ example: true })
   @Expose()
   is_active!: boolean;

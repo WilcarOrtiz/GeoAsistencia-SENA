@@ -1,12 +1,9 @@
 import { Controller, Get, Param, ParseUUIDPipe, Patch } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { PublicAccess } from 'src/common/decorators';
 import { RoleResponseDto } from './dto/roles-response.dto';
 import { toDto } from 'src/common/utils/dto-mapper.util';
 
-@ApiBearerAuth('access-token')
-@PublicAccess()
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}

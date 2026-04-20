@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { ClassSessions } from './entities/class-session.entity';
@@ -19,11 +23,18 @@ export class ClassSessionsService {
     private enrollmentService: EnrollmentService,
     private attendancesService: AttendancesService,
   ) {}
-
   async createSession(createClassSessionDto: CreateClassSessionDto) {
     const { group_id, class_topic, latitude, longitude } =
       createClassSessionDto;
+
     const grupo = await this.classGroupsService.findActiveGroup(group_id);
+
+    if (!grupo.teacher) {
+      throw new BadRequestException(
+        'El grupo no tiene un docente asignado para crear una sesión',
+      );
+    }
+
     const attendance_opened_at =
       await this.classDaysService.validateDayClassInSession(grupo.id);
 
@@ -32,6 +43,7 @@ export class ClassSessionsService {
     const classSession = await this.classSessionRepo.save({
       class_topic,
       classGroup: { id: grupo.id },
+      teacher: { auth_id: grupo.teacher.auth_id },
       teacher_latitude: latitude,
       teacher_longitude: longitude,
       attendance_opened_at,
@@ -51,7 +63,6 @@ export class ClassSessionsService {
 
     return classSession;
   }
-
   async closeSession(id: string) {
     const session = await this.classSessionRepo.preload({
       id,
@@ -70,3 +81,5 @@ export class ClassSessionsService {
     await repo.createQueryBuilder().delete().execute();
   }
 }
+
+/*el crear sesion ahora tiene al docente*/

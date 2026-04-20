@@ -11,21 +11,13 @@ import {
 } from '@nestjs/common';
 import { SemesterService } from './semester.service';
 
-import { PublicAccess } from 'src/common/decorators';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import * as DTO from './dto';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 import { PaginatedSemesterResponseDto } from './dto/semester-response.dto';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
-@ApiBearerAuth('access-token')
-@PublicAccess()
 @Controller('semester')
 export class SemesterController {
   constructor(private readonly semesterService: SemesterService) {}

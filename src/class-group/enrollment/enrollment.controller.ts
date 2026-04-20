@@ -3,9 +3,7 @@ import { EnrollmentService } from './enrollment.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { EnrollmentDto } from './dto/enrollment.dto';
 import { MoveEnrollmentDto } from './dto/move-enrollment.dto';
-import { PublicAccess } from 'src/common/decorators';
 
-@PublicAccess()
 @Controller('enrollment')
 export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}

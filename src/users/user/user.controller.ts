@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './service/user.service';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import * as DTO from './dto';
 import {
@@ -23,7 +23,6 @@ import { RoleListItemDto } from 'src/access-control-module/roles/dto/roles-respo
 import type { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
-@ApiBearerAuth('access-token')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

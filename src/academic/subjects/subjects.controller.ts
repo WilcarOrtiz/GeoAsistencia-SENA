@@ -11,14 +11,11 @@ import {
 } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-
-import { PublicAccess } from 'src/common/decorators';
 import * as DTO from './dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { PaginatedSubjectResponseDto } from './dto/subject-response.dto';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
-@PublicAccess()
 @Controller('subjects')
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}

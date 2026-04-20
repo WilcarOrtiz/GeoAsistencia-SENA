@@ -9,9 +9,7 @@ import {
 import { ClassSessionsService } from './class-sessions.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { ApiOperation } from '@nestjs/swagger';
-import { PublicAccess } from 'src/common/decorators';
 
-@PublicAccess()
 @Controller('class-sessions')
 export class ClassSessionsController {
   constructor(private readonly classSessionsService: ClassSessionsService) {}

@@ -13,7 +13,7 @@ export class CreateClassSessionDto {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440002' })
   @IsNotEmpty({ message: 'El id del grupo es obligatorio' })
   @IsUUID('4', { message: 'El id del grupo debe ser un UUID válido' })
-  group_id: string;
+  group_id!: string;
 
   @ApiProperty({ example: 'Primer semestre académico 2025' })
   @IsOptional({ message: 'El tema de sesion NO es obligatorio' })
@@ -29,7 +29,7 @@ export class CreateClassSessionDto {
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude!: number;
 
   @ApiProperty({
     description: 'Longitud del docente (Ubicacion GPS)',
@@ -38,5 +38,5 @@ export class CreateClassSessionDto {
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude!: number;
 }

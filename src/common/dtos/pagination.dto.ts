@@ -21,17 +21,17 @@ export class PaginationDto {
 export class PaginatedResponseDto<T> {
   @ApiProperty({ isArray: true })
   @Expose()
-  data: T[];
+  data!: T[];
 
   @ApiProperty({ example: 50 })
   @Expose()
-  total: number;
+  total!: number;
 
   @ApiProperty({ example: 10 })
   @Expose()
-  limit: number;
+  limit!: number;
 
   @ApiProperty({ example: 1 })
   @Expose()
-  page: number;
+  page!: number;
 }

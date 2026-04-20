@@ -5,6 +5,7 @@ import { ClassDays } from './entities/class-day.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { ClassGroupsService } from '../class-groups/class-groups.service';
 import { getWeekDayLabel, WeekDay } from 'src/common/enums/weeyDay.enum';
+import { ClassDayResponseDto } from './dto/class-day-response.dto';
 
 @Injectable()
 export class ClassDaysService {
@@ -39,7 +40,7 @@ export class ClassDaysService {
       });
 
       if (existing) {
-        continue; // 👈 o throw si quieres strict mode
+        continue;
       }
 
       const classDay = this.classDaysRepo.create({
@@ -85,6 +86,41 @@ export class ClassDaysService {
     }
 
     return currentTime;
+  }
+
+  async findByGroup(classGroupId: string): Promise<ClassDayResponseDto[]> {
+    const days = await this.classDaysRepo.find({
+      where: {
+        classGroup: {
+          id: classGroupId,
+          is_active: true,
+        },
+        is_active: true,
+      },
+      select: ['id', 'is_active', 'start_time', 'end_time', 'day'],
+      order: {
+        day: 'ASC',
+        start_time: 'ASC',
+      },
+    });
+
+    if (!days.length) {
+      throw new BadRequestException(
+        'El grupo no existe o no tiene horarios activos',
+      );
+    }
+    return days;
+  }
+
+  async deactivate(id: string): Promise<void> {
+    const result = await this.classDaysRepo.update(
+      { id },
+      { is_active: false },
+    );
+
+    if (result.affected === 0) {
+      throw new BadRequestException('Class day no encontrado');
+    }
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {
