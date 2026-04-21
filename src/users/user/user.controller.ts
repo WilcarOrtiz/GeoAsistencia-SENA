@@ -8,9 +8,19 @@ import {
   ParseUUIDPipe,
   Query,
   UseGuards,
+  UseInterceptors,
+  BadRequestException,
+  UploadedFile,
+  HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './service/user.service';
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 import * as DTO from './dto';
 import {
@@ -22,10 +32,17 @@ import { PermissionsGuard } from 'src/common/guard';
 import { RoleListItemDto } from 'src/access-control-module/roles/dto/roles-response.dto';
 import type { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
+import { UserBulkService } from './service/user-bulk.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import express from 'express';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userBulkService: UserBulkService,
+  ) {}
 
   @PublicAccess()
   @Get('is-active')
@@ -167,6 +184,86 @@ export class UserController {
   ): Promise<DTO.PaginatedUserResponseDto> {
     const result = await this.userService.findAll(findAllUsersDto);
     return toPaginatedDto(DTO.UserResponseWithRolesDto, result);
+  }
+
+  @PublicAccess()
+  @Get('bulk/template')
+  // Usamos @Res() para tomar el control total de la respuesta
+  async downloadTemplate(@Res() res: express.Response) {
+    try {
+      const buffer = await this.userBulkService.generateTemplate();
+
+      const fileName = 'plantilla_usuarios.xlsx';
+
+      // Configuramos los headers manualmente para asegurar limpieza total
+      res.set({
+        'Content-Type':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Length': buffer.length,
+      });
+
+      // Enviamos el buffer directamente y terminamos la respuesta
+      return res.status(HttpStatus.OK).send(buffer);
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Error al generar el archivo',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        error,
+      });
+    }
+  }
+
+  @PublicAccess()
+  @Post('bulk/import')
+  @ApiOperation({
+    summary: 'Importar usuarios masivamente desde un archivo Excel',
+    description:
+      'Recibe un archivo .xlsx (con la misma estructura de la plantilla), ' +
+      'valida cada fila y crea los usuarios. ' +
+      'Devuelve cuántos se crearon y cuáles fallaron con el motivo.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        created: 5,
+        failed: [
+          { row: 4, ID: '1066865142', errors: ['Email ya está en uso'] },
+        ],
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_, file, cb) => {
+        const allowed = [
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel',
+        ];
+        if (!allowed.includes(file.mimetype)) {
+          return cb(
+            new BadRequestException('Solo se permiten archivos .xlsx o .xls'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async bulkImport(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No se recibió ningún archivo');
+    return this.userBulkService.bulkImport(file.buffer);
   }
 }
 

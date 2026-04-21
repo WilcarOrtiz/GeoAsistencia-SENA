@@ -264,6 +264,31 @@ export class UserService {
     };
   }
 
+  async resolveRoleNameToIds(roleNames: string[]): Promise<string[]> {
+    const allRoles = await this.rolesService.findAll();
+    const nameToId = new Map(allRoles.map((r) => [r.name.toUpperCase(), r.id]));
+
+    const resolved: string[] = [];
+    const invalid: string[] = [];
+
+    for (const name of roleNames) {
+      const id = nameToId.get(name.toUpperCase());
+      if (!id) {
+        invalid.push(name);
+      } else {
+        resolved.push(id);
+      }
+    }
+
+    if (invalid.length > 0) {
+      throw new BadRequestException(
+        `Roles no encontrados en la base de datos: ${invalid.join(', ')}`,
+      );
+    }
+
+    return resolved;
+  }
+
   async isUserActiveByEmail(email: string): Promise<boolean> {
     const user = await this.userRepo.findOne({
       where: { email },

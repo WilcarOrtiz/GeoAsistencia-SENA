@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { User } from './entities/user.entity';
 import { UserProfileService } from './service/user-profile.service';
+import { UserBulkService } from './service/user-bulk.service';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, UserProfileService],
+  providers: [UserService, UserProfileService, UserBulkService],
   imports: [
     TypeOrmModule.forFeature([User]),
     AccessControlModuleModule,
