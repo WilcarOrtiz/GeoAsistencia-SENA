@@ -13,7 +13,7 @@ import { TeacherService } from '../users/teacher/teacher.service';
 import { StudentService } from '../users/student/student.service';
 import { AttendancesService } from '../class-group/attendances/attendances.service';
 import { ClassSessionsService } from '../class-group/class-sessions/class-sessions.service';
-import { EnrollmentService } from '../class-group/enrollment/enrollment.service';
+import { EnrollmentService } from '../class-group/enrollment/service/enrollment.service';
 
 @Injectable()
 export class SeedService {

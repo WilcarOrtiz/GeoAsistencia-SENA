@@ -13,6 +13,7 @@ import {
   UploadedFile,
   HttpStatus,
   Res,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from './service/user.service';
 import {
@@ -59,6 +60,7 @@ export class UserController {
     return { isActive };
   }
 
+  @PublicAccess()
   @Post()
   @ApiOperation({
     summary: 'Registrar usuario',
@@ -188,33 +190,23 @@ export class UserController {
 
   @PublicAccess()
   @Get('bulk/template')
-  // Usamos @Res() para tomar el control total de la respuesta
   async downloadTemplate(@Res() res: express.Response) {
     try {
       const buffer = await this.userBulkService.generateTemplate();
 
-      const fileName = 'plantilla_usuarios.xlsx';
-
-      // Configuramos los headers manualmente para asegurar limpieza total
       res.set({
         'Content-Type':
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Disposition': `attachment; filename="plantilla_usuarios.xlsx"`,
         'Content-Length': buffer.length,
       });
 
-      // Enviamos el buffer directamente y terminamos la respuesta
       return res.status(HttpStatus.OK).send(buffer);
-    } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Error al generar el archivo',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        error,
-      });
+    } catch {
+      throw new InternalServerErrorException('No se pudo generar la plantilla');
     }
   }
 
-  @PublicAccess()
   @Post('bulk/import')
   @ApiOperation({
     summary: 'Importar usuarios masivamente desde un archivo Excel',

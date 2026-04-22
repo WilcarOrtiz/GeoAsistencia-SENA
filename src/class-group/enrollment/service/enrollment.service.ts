@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Enrollment } from './entities/enrollment.entity';
+import { Enrollment } from '../entities/enrollment.entity';
 import { EntityManager, In, Repository } from 'typeorm';
-import { ClassGroupsService } from '../class-groups/class-groups.service';
+import { ClassGroupsService } from '../../class-groups/class-groups.service';
 import { EnrollmentStatus } from 'src/common/enums/enrollment-status.enum';
 
 @Injectable()

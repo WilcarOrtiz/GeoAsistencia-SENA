@@ -7,5 +7,5 @@ export class EnrollmentDto {
   @ArrayNotEmpty({ message: 'Debes seleccionar al menos un estudiante' })
   @IsNotEmpty()
   @IsUUID('4', { each: true, message: 'El identificador no es válido' })
-  students: string[];
+  students!: string[];
 }

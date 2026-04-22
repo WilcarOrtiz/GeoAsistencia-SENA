@@ -6,10 +6,11 @@ import { SemesterController } from './semester/semester.controller';
 import { SemesterService } from './semester/semester.service';
 import { Semester } from './semester/entities/semester.entity';
 import { Subject } from './subjects/entities/subject.entity';
+import { SubjectsBulkService } from './subjects/subjects-bulk.service';
 
 @Module({
   controllers: [SubjectsController, SemesterController],
-  providers: [SubjectsService, SemesterService],
+  providers: [SubjectsService, SemesterService, SubjectsBulkService],
   imports: [TypeOrmModule.forFeature([Subject, Semester])],
   exports: [TypeOrmModule, SubjectsService, SemesterService],
 })

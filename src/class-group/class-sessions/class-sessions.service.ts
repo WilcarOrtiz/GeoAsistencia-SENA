@@ -10,7 +10,7 @@ import { ClassDaysService } from '../class-days/class-days.service';
 import { v4 as uuidv4 } from 'uuid';
 import { ClassGroupsService } from '../class-groups/class-groups.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
-import { EnrollmentService } from '../enrollment/enrollment.service';
+import { EnrollmentService } from '../enrollment/service/enrollment.service';
 import { AttendancesService } from '../attendances/attendances.service';
 
 @Injectable()

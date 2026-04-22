@@ -13,30 +13,30 @@ import {
 @Entity('ENROLLMENTS')
 export class Enrollment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'enum',
     enum: EnrollmentStatus,
     default: EnrollmentStatus.ACTIVE,
   })
-  status: EnrollmentStatus;
+  status!: EnrollmentStatus;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  enrolled_at: Date;
+  enrolled_at!: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
-  unenrolled_at: Date;
+  unenrolled_at!: Date;
 
   @ManyToOne(() => ClassGroup, (group) => group.enrollments, {
     nullable: false,
   })
   @JoinColumn({ name: 'class_group_id' })
-  classGroup: ClassGroup;
+  classGroup!: ClassGroup;
 
   @ManyToOne(() => Student, (student) => student.enrollments, {
     nullable: false,
   })
   @JoinColumn({ name: 'student_id' })
-  student: Student;
+  student!: Student;
 }

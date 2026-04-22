@@ -43,6 +43,7 @@ export class UserBulkService {
     });
 
     sheet.columns = TEMPLATE_COLUMNS.map((col) => ({ ...col }));
+    sheet.getColumn(6).numFmt = '@';
 
     const headerRow = sheet.getRow(1);
     headerRow.eachCell((cell) => {
@@ -93,7 +94,6 @@ export class UserBulkService {
     errors: { row: number; errors: string[] }[];
   }> {
     const workbook = new ExcelJS.Workbook();
-
     await workbook.xlsx.load(fileBuffer as any);
 
     const sheet = workbook.worksheets[0];
@@ -105,12 +105,22 @@ export class UserBulkService {
     const getSafeValue = (cell: ExcelJS.Cell): string => {
       if (!cell || cell.value === null || cell.value === undefined) return '';
 
+      if (typeof cell.value === 'object' && 'text' in cell.value) {
+        return String((cell.value as { text: unknown }).text ?? '').trim();
+      }
+
       if (typeof cell.value === 'object' && 'result' in cell.value) {
-        return String(cell.value.result ?? '').trim();
+        return String((cell.value as { result: unknown }).result ?? '').trim();
       }
 
       return String(cell.value).trim();
     };
+    const cleanEmail = (raw: string): string =>
+      raw
+        .replace(/\u00A0/g, '')
+        .replace(/\r|\n|\t/g, '')
+        .trim()
+        .toLowerCase();
 
     sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
       if (rowNumber <= 2) return;
@@ -120,13 +130,18 @@ export class UserBulkService {
         .map((r) => r.trim().toUpperCase())
         .filter(Boolean);
 
+      const rawCell = getSafeValue(row.getCell(6));
+      this.logger.debug(`Fila ${rowNumber} email raw: "${rawCell}"`);
+      this.logger.debug(
+        `Char codes: ${[...rawCell].map((c) => c.charCodeAt(0)).join(',')}`,
+      );
       const plain = {
         ID: getSafeValue(row.getCell(1)),
         first_name: getSafeValue(row.getCell(2)),
         middle_name: getSafeValue(row.getCell(3)) || undefined,
         last_name: getSafeValue(row.getCell(4)),
         second_last_name: getSafeValue(row.getCell(5)) || undefined,
-        email: getSafeValue(row.getCell(6)),
+        email: cleanEmail(getSafeValue(row.getCell(6))),
         roles: rawRoles,
       };
 
@@ -151,16 +166,17 @@ export class UserBulkService {
   async bulkImport(fileBuffer: Buffer): Promise<BulkImportResult> {
     const { rows, errors } = await this.parseAndValidateExcel(fileBuffer);
 
-    if (errors.length > 0) {
-      throw new BadRequestException({
-        message: 'El archivo contiene errores de validación',
-        errors,
-      });
-    }
+    const result: BulkImportResult = {
+      created: 0,
+      failed: [...errors],
+    };
 
-    const result: BulkImportResult = { created: 0, failed: [] };
+    const invalidRows = new Set(errors.map((e) => e.row));
 
     for (let i = 0; i < rows.length; i++) {
+      const rowNumber = i + 3;
+      if (invalidRows.has(rowNumber)) continue;
+
       const row = rows[i];
       try {
         const rolesID = await this.userService.resolveRoleNameToIds(row.roles);
@@ -173,14 +189,14 @@ export class UserBulkService {
           email: row.email,
           rolesID,
         });
-
         result.created++;
       } catch (error: unknown) {
-        this.logger.warn(`Fila ${i + 3} falló: ${(error as Error).message}`);
+        const message = (error as Error).message ?? 'Error desconocido';
+        this.logger.warn(`Fila ${rowNumber} falló: ${message}`);
         result.failed.push({
-          row: i + 3,
+          row: rowNumber,
           ID: row.ID,
-          errors: [(error as Error).message ?? 'Error desconocido'],
+          errors: [message],
         });
       }
     }
