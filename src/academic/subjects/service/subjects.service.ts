@@ -121,9 +121,7 @@ export class SubjectsService {
     return { message: 'Asignatura desactivada correctamente' };
   }
 
-  async findAllForSelect(): Promise<
-    { id: string; name: string; code: string }[]
-  > {
+  async findAllForSelect(): Promise<Subject[]> {
     return await this.subjectRepo.find({
       where: {
         is_active: true,

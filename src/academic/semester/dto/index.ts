@@ -1,3 +1,4 @@
+export { SemesterSelectDto } from './semester-response.dto';
 export { ChangeSemesterStateResponseDto } from './semester-response.dto';
 export { PaginatedSemesterResponseDto } from './semester-response.dto';
 export { SemesterFullBasicDto } from './semester-response.dto';

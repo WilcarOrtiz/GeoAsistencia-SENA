@@ -17,7 +17,33 @@ export class SemesterFullBasicDto {
   state!: StateSemester;
 }
 
-export class SemesterResponseDto extends SemesterFullBasicDto {
+export class SemesterSelectDto {
+  @ApiProperty({ example: '8a66fc96-0944-4630-9c64-bc573b2dff0c' })
+  @Expose()
+  id!: string;
+
+  @ApiProperty({ example: 'Semestre - 2026-2' })
+  @Expose()
+  name!: string;
+
+  @ApiProperty({ example: '2025-1' })
+  @Expose()
+  code!: string;
+}
+
+export class SemesterResponseDto {
+  @ApiProperty({ example: '8a66fc96-0944-4630-9c64-bc573b2dff0c' })
+  @Expose()
+  id!: string;
+
+  @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVE })
+  @Expose()
+  state!: StateSemester;
+
+  @ApiProperty({ example: 'Semestre - 2026-2' })
+  @Expose()
+  name!: string;
+
   @ApiProperty({ example: '2025-1' })
   @Expose()
   code!: string;

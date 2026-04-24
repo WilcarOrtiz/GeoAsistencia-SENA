@@ -12,6 +12,20 @@ export class SubjectFullBasicDto {
   name!: string;
 }
 
+export class SubjectSelectDto {
+  @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
+  @Expose()
+  id!: string;
+
+  @ApiProperty({ example: 'PRO234' })
+  @Expose()
+  name!: string;
+
+  @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
+  @Expose()
+  code!: string;
+}
+
 export class SubjectResponseDto {
   @ApiProperty({ example: '32189680-8774-4638-8980-304b4f0b2405' })
   @Expose()

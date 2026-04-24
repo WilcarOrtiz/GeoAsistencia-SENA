@@ -17,7 +17,6 @@ export class ClassDaysService {
 
   async create(dto: CreateClassDayDto): Promise<ClassDays[]> {
     const { start_time, end_time, classGroup_id, days } = dto;
-
     const classGroup =
       await this.classGroupsService.findActiveGroup(classGroup_id);
 

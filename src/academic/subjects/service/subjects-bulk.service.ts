@@ -4,7 +4,8 @@ import * as ExcelJS from 'exceljs';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { SubjectsService } from './subjects.service';
-import { BulkImportResult, BulkSubjectRowDto } from '../dto';
+
+import * as dto from '../dto/index';
 
 const TEMPLATE_COLUMNS = [
   { header: 'Código (*)', key: 'code', width: 16 },
@@ -66,7 +67,7 @@ export class SubjectsBulkService {
   }
 
   async parseAndValidateExcel(fileBuffer: Buffer): Promise<{
-    rows: BulkSubjectRowDto[];
+    rows: dto.BulkSubjectRowDto[];
     errors: { row: number; errors: string[] }[];
   }> {
     const workbook = new ExcelJS.Workbook();
@@ -75,7 +76,7 @@ export class SubjectsBulkService {
     const sheet = workbook.worksheets[0];
     if (!sheet) throw new BadRequestException('El archivo no contiene hojas');
 
-    const rows: BulkSubjectRowDto[] = [];
+    const rows: dto.BulkSubjectRowDto[] = [];
     const errors: { row: number; errors: string[] }[] = [];
 
     const getSafeValue = (cell: ExcelJS.Cell): string => {
@@ -94,7 +95,7 @@ export class SubjectsBulkService {
         name: getSafeValue(row.getCell(2)),
       };
 
-      rows.push(plainToInstance(BulkSubjectRowDto, plain));
+      rows.push(plainToInstance(dto.BulkSubjectRowDto, plain));
     });
 
     for (let i = 0; i < rows.length; i++) {
@@ -112,7 +113,7 @@ export class SubjectsBulkService {
     return { rows, errors };
   }
 
-  async bulkImport(fileBuffer: Buffer): Promise<BulkImportResult> {
+  async bulkImport(fileBuffer: Buffer): Promise<dto.BulkCreateResponseDto> {
     const { rows, errors } = await this.parseAndValidateExcel(fileBuffer);
 
     if (errors.length > 0) {
@@ -122,7 +123,7 @@ export class SubjectsBulkService {
       });
     }
 
-    const result: BulkImportResult = { created: 0, failed: [] };
+    const result: dto.BulkCreateResponseDto = { created: 0, failed: [] };
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];

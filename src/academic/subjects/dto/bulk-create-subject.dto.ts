@@ -14,8 +14,3 @@ export class BulkSubjectRowDto {
   @Length(3, 30, { message: 'El nombre debe tener entre 3 y 30 caracteres' })
   name!: string;
 }
-
-export interface BulkImportResult {
-  created: number;
-  failed: { row: number; code?: string; errors: string[] }[];
-}

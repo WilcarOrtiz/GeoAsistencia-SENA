@@ -7,13 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Not, Repository, EntityManager } from 'typeorm';
 import { Semester } from './entities/semester.entity';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
-import { isUUID } from 'class-validator';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
-import {
-  CreateSemesterDto,
-  FindAllSemesterDto,
-  UpdateSemesterDto,
-} from './dto';
+import * as dto from './dto';
 
 @Injectable()
 export class SemesterService {
@@ -50,7 +45,7 @@ export class SemesterService {
     return { startYear, term, code: `${startYear}-${term}` };
   }
 
-  async create(createSemesterDto: CreateSemesterDto): Promise<Semester> {
+  async create(createSemesterDto: dto.CreateSemesterDto): Promise<Semester> {
     const { name, startDate, endDate, state } = createSemesterDto;
     this.validateDateRange(startDate, endDate);
     const { startYear, term, code } = this.generateAcademicInfo(startDate);
@@ -92,7 +87,7 @@ export class SemesterService {
 
   async update(
     id: string,
-    updateSemesterDto: UpdateSemesterDto,
+    updateSemesterDto: dto.UpdateSemesterDto,
   ): Promise<Semester> {
     const name = updateSemesterDto.name;
     const start_date = updateSemesterDto.startDate
@@ -185,34 +180,6 @@ export class SemesterService {
     return { state: nextState };
   }
 
-  async findOne(term_param: string): Promise<Semester> {
-    const term = decodeURIComponent(term_param).trim();
-    let semester: Semester | null;
-
-    if (isUUID(term)) {
-      semester = await this.semesterRepo.findOne({
-        where: { id: term, is_active: true },
-      });
-    } else {
-      semester = await this.semesterRepo
-        .createQueryBuilder('semester')
-        .where('semester.is_active = true')
-        .andWhere(
-          `(
-          unaccent(lower(semester.code)) = unaccent(lower(:term))
-          OR
-          unaccent(lower(semester.name)) = unaccent(lower(:term))
-          )`,
-          { term },
-        )
-        .getOne();
-    }
-
-    if (!semester)
-      throw new NotFoundException(`Semestre with ${term} not found`);
-    return semester;
-  }
-
   async findActiveOrPlanned(id: string): Promise<Semester> {
     const semester = await this.semesterRepo.findOne({
       where: {
@@ -232,7 +199,7 @@ export class SemesterService {
   }
 
   async findAll(
-    options: FindAllSemesterDto,
+    options: dto.FindAllSemesterDto,
   ): Promise<PaginatedResponseDto<Semester>> {
     const { limit = 10, page = 1, state } = options;
 
@@ -275,9 +242,7 @@ export class SemesterService {
     return { message: 'Semestre eliminado correctamente' };
   }
 
-  async findAllForSelect(
-    type: 'select' | 'filter',
-  ): Promise<{ id: string; name: string; code: string }[]> {
+  async findAllForSelect(type: 'select' | 'filter'): Promise<Semester[]> {
     const where =
       type === 'select'
         ? {

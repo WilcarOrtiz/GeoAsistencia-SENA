@@ -57,22 +57,9 @@ export class SemesterController {
   })
   async findAllForSelect(
     @Query('type') type: 'select' | 'filter' = 'select',
-  ): Promise<{ id: string; name: string; code: string }[]> {
-    return await this.semesterService.findAllForSelect(type);
-  }
-
-  @Get(':term')
-  @ApiOperation({
-    summary: 'obtener un semestre',
-    description:
-      'Obtiene un semestre en base a un termino de busqueda (code, id).',
-  })
-  @ApiOkResponse({ type: DTO.SemesterResponseDto })
-  async findOne(@Param('term') term: string): Promise<DTO.SemesterResponseDto> {
-    return toDto(
-      DTO.SemesterResponseDto,
-      await this.semesterService.findOne(term),
-    );
+  ): Promise<DTO.SemesterSelectDto> {
+    const data = await this.semesterService.findAllForSelect(type);
+    return toDto(DTO.SemesterSelectDto, data);
   }
 
   @Patch(':id')
@@ -108,7 +95,13 @@ export class SemesterController {
   @ApiOperation({
     summary: 'Eliminar semestre (logicamente)',
   })
-  @ApiOkResponse({ type: DTO.SemesterResponseDto })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Semestre eliminado correctamente',
+      },
+    },
+  })
   async remove(@Param('id') id: string) {
     return await this.semesterService.remove(id);
   }
