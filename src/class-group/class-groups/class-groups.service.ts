@@ -8,12 +8,15 @@ import { ClassGroup } from './entities/class-group.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { SemesterService } from 'src/academic/semester/semester.service';
-import { SubjectsService } from 'src/academic/subjects/subjects.service';
+import { SubjectsService } from 'src/academic/subjects/service/subjects.service';
 import { TeacherService } from 'src/users/teacher/teacher.service';
 import { FindAllClaasGroupsDto } from './dto/find-all-classgroup.dto';
 import { UpdateClassGroupDto } from './dto/update-class-group.dto';
 import { StateSemester } from 'src/common/enums/state_semester.enum';
 import { ClassGroupOption } from './dto';
+import { ICurrentUser } from 'src/common/interface/current-user.interface';
+import { ValidRole } from 'src/common/enums/valid-role.enum';
+import { EnrollmentStatus } from 'src/common/enums/enrollment-status.enum';
 
 @Injectable()
 export class ClassGroupsService {
@@ -119,9 +122,8 @@ export class ClassGroupsService {
       relations: ['subject', 'semester'],
     });
 
-    if (!currentGroup) {
+    if (!currentGroup)
       throw new NotFoundException('Grupo de clase no encontrado');
-    }
 
     const groups = await this.classGroupRepo.find({
       where: {
@@ -133,7 +135,7 @@ export class ClassGroupsService {
     });
 
     return groups
-      .filter((g) => g.id !== groupId) // excluir el actual
+      .filter((g) => g.id !== groupId)
       .map((g) => ({
         id: g.id,
         name: g.name,
@@ -188,41 +190,66 @@ export class ClassGroupsService {
     await repo.createQueryBuilder().delete().execute();
   }
 
-  async findAll(options: FindAllClaasGroupsDto) {
+  async findAll(options: FindAllClaasGroupsDto, currentUser: ICurrentUser) {
     const { limit = 10, page = 1, semester, subject, term } = options;
     const offset = (page - 1) * limit;
 
     const qb = this.baseListQuery();
 
+    const isAdmin = currentUser.roles.some((r) => r.name === ValidRole.ADMIN);
+    const isTeacher = currentUser.roles.some(
+      (r) => r.name === ValidRole.TEACHER,
+    );
+    const isStudent = currentUser.roles.some(
+      (r) => r.name === ValidRole.STUDENT,
+    );
+
+    if (isTeacher && !isAdmin) {
+      qb.andWhere('teacher.auth_id = :teacherId', {
+        teacherId: currentUser.authId,
+      })
+        .andWhere('group.is_active = true')
+        .andWhere('semester.state = :state', { state: StateSemester.ACTIVE });
+    }
+
+    if (isStudent && !isAdmin) {
+      qb.innerJoin(
+        'group.enrollments',
+        'myEnrollment',
+        'myEnrollment.student_id = :studentId AND myEnrollment.status = :enrollStatus',
+        {
+          studentId: currentUser.authId,
+          enrollStatus: EnrollmentStatus.ACTIVE,
+        },
+      )
+        .andWhere('group.is_active = true')
+        .andWhere('semester.state = :state', { state: StateSemester.ACTIVE });
+    }
+
     if (semester) {
-      qb.andWhere('semester.id = :semesterId', {
-        semesterId: semester,
-      });
+      qb.andWhere('semester.id = :semesterId', { semesterId: semester });
     }
 
     if (subject) {
-      qb.andWhere('subject.id = :subjectId', {
-        subjectId: subject,
-      });
+      qb.andWhere('subject.id = :subjectId', { subjectId: subject });
     }
 
     if (term) {
       const terms = term.split(' ').filter((t) => t.trim() !== '');
-
       terms.forEach((word, index) => {
         qb.andWhere(
           `(
-    group.code ILIKE :term${index} OR
-    group.name ILIKE :term${index} OR
-    subject.name ILIKE :term${index} OR
-    semester.name ILIKE :term${index} OR
-    CONCAT(
-      user.first_name, ' ',
-      COALESCE(user.middle_name, ''), ' ',
-      user.last_name, ' ',
-      COALESCE(user.second_last_name, '')
-    ) ILIKE :term${index}
-  )`,
+          group.code ILIKE :term${index} OR
+          group.name ILIKE :term${index} OR
+          subject.name ILIKE :term${index} OR
+          semester.name ILIKE :term${index} OR
+          CONCAT(
+            user.first_name, ' ',
+            COALESCE(user.middle_name, ''), ' ',
+            user.last_name, ' ',
+            COALESCE(user.second_last_name, '')
+          ) ILIKE :term${index}
+        )`,
           { [`term${index}`]: `%${word}%` },
         );
       });
@@ -231,10 +258,9 @@ export class ClassGroupsService {
     qb.orderBy('group.created_at', 'DESC').take(limit).skip(offset);
 
     const [data, total] = await qb.getManyAndCount();
-    const mapped = data.map((group) => this.mapGroup(group));
 
     return {
-      data: mapped,
+      data: data.map((group) => this.mapGroup(group)),
       total,
       limit,
       page,
@@ -306,5 +332,3 @@ export class ClassGroupsService {
     return await this.classGroupRepo.save(group);
   }
 }
-
-//TODO: en lo de listar debo filrtrar si es docente solo los activos y si es admin pues todo ajsjaa

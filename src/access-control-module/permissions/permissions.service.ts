@@ -32,6 +32,7 @@ export class PermissionsService {
     const { names, pagination, withRoles = false, manager } = options;
 
     const repo = this.getRepo(manager);
+    const applyPagination = !names;
 
     const page = pagination?.page ?? 1;
     const limit = pagination?.limit ?? 10;
@@ -39,8 +40,7 @@ export class PermissionsService {
 
     const [data, total] = await repo.findAndCount({
       where: names ? { name: In(names) } : {},
-      take: limit,
-      skip: offset,
+      ...(applyPagination ? { take: limit, skip: offset } : {}),
       relations: { roles: withRoles },
       order: {
         name: 'ASC',

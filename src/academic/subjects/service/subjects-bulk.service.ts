@@ -4,7 +4,7 @@ import * as ExcelJS from 'exceljs';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { SubjectsService } from './subjects.service';
-import { BulkImportResult, BulkSubjectRowDto } from './dto';
+import { BulkImportResult, BulkSubjectRowDto } from '../dto';
 
 const TEMPLATE_COLUMNS = [
   { header: 'Código (*)', key: 'code', width: 16 },

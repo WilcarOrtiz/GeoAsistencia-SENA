@@ -1,0 +1,91 @@
+async getUserProfile(
+  currentUser: ICurrentUser,
+  deviceId?: string,        // viene solo si es Flutter
+): Promise<UserMeResponseDto> {
+
+  // Solo procesar si Flutter mandó el uuid_phone
+  if (deviceId) {
+    await this.handlePhoneRegistration(currentUser.authId, deviceId);
+  }
+
+  const navigation = await this.menuService.getMenuTreeByPermissions(
+    currentUser.permissions,
+  );
+
+  return {
+    user: {
+      id: currentUser.ID_user,
+      authId: currentUser.authId,
+      fullName: currentUser.fullName,
+      isActive: currentUser.is_active,
+    },
+    roles: currentUser.roles,
+    permissions: currentUser.permissions,
+    navigation,
+  };
+}
+
+private async handlePhoneRegistration(
+  authId: string,
+  deviceId: string,
+): Promise<void> {
+  const manager = this.userRepo.manager;
+
+  const user = await this.userRepo.findOne({
+    where: { auth_id: authId, is_active: true },
+    relations: ['student', 'teacher'],
+  });
+
+  if (!user) return;
+
+  if (user.student?.is_active) {
+    await this.syncPhone(manager, Student, authId, deviceId);
+  }
+
+  if (user.teacher?.is_active) {
+    await this.syncPhone(manager, Teacher, authId, deviceId);
+  }
+}
+
+private async syncPhone(
+  manager: EntityManager,
+  entity: typeof Student | typeof Teacher,
+  authId: string,
+  deviceId: string,
+): Promise<void> {
+  const repo = manager.getRepository(entity);
+  const profile = await repo.findOneBy({ auth_id: authId });
+  if (!profile) return;
+
+  if (profile.uuid_phone === null) {
+    // Primera vez en este teléfono → guardar
+    await repo.update({ auth_id: authId }, { uuid_phone: deviceId });
+  } else if (profile.uuid_phone !== deviceId) {
+    // Teléfono diferente → rechazar
+    throw new ForbiddenException(
+      'Este usuario ya tiene un dispositivo registrado.',
+    );
+  }
+  // mismo teléfono → no hacer nada
+}
+
+
+
+
+Y en el controller, leer el header:
+ts@Get('me')
+async getProfile(
+  @GetUser() user: ICurrentUser,
+  @Headers('x-device-id') deviceId?: string,  // opcional, solo Flutter lo manda
+) {
+  return await this.userService.getUserProfile(user, deviceId);
+}
+Desde Flutter simplemente añades el header al hacer la llamada:
+dartawait http.get(
+  Uri.parse('$baseUrl/user/me'),
+  headers: {
+    'Authorization': 'Bearer $token',
+    'x-device-id': deviceUuid,   // siempre que sea móvil
+  },
+);
+La web nunca manda ese header → deviceId llega undefined → el backend lo ignora completamente. Si

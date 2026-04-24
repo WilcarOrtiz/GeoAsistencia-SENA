@@ -39,9 +39,7 @@ export class ClassDaysService {
         },
       });
 
-      if (existing) {
-        continue;
-      }
+      if (existing) continue;
 
       const classDay = this.classDaysRepo.create({
         start_time,
@@ -118,9 +116,8 @@ export class ClassDaysService {
       { is_active: false },
     );
 
-    if (result.affected === 0) {
+    if (result.affected === 0)
       throw new BadRequestException('Class day no encontrado');
-    }
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {
@@ -128,17 +125,3 @@ export class ClassDaysService {
     await repo.createQueryBuilder().delete().execute();
   }
 }
-
-/*✅ Actualizar directamente (UPDATE) cuando:
-
-Solo cambia la hora (start_time / end_time) del mismo día de la semana
-Es una corrección de datos (error al ingresar)
-El grupo aún no ha tenido sesiones de clase relacionadas
-
-Esto es seguro porque CLASS_DAYS define el horario del grupo, no es un registro histórico por sí mismo.
-
-✅ Soft delete (is_active = false) + nuevo registro cuando:
-
-Cambia el día de la semana (e.g. de lunes a miércoles)
-El grupo ya tiene CLASS_SESSIONS asociadas a ese horario
-Quieres mantener trazabilidad de cómo evolucionó el horario*/

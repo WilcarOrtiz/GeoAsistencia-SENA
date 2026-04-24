@@ -85,7 +85,7 @@ export const initialData: SeedData = {
     // =========================
     // 🔐 ROLES & PERMISSIONS
     // =========================
-    { name: 'gestionar_roles', description: 'Asignar permisos a roles' },
+    { name: 'manage:role', description: 'Asignar permisos a roles' },
 
     // =========================
     // 📊 REPORTS
@@ -133,7 +133,7 @@ export const initialData: SeedData = {
         'transferir_estudiantes',
         'descargar_plantilla_grupo',
 
-        'gestionar_roles',
+        'manage:role',
 
         'ver_reportes',
         'exportar_reportes',
@@ -185,7 +185,7 @@ export const initialData: SeedData = {
       name: 'Roles y permisos',
       route: '/roles',
       icon: 'ShieldUser',
-      permission_name: 'gestionar_roles',
+      permission_name: 'manage:role',
       order_index: 2,
     },
     // =========================

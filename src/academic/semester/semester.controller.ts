@@ -10,12 +10,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { SemesterService } from './semester.service';
-
 import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-
 import * as DTO from './dto';
-import { StateSemester } from 'src/common/enums/state_semester.enum';
-import { PaginatedSemesterResponseDto } from './dto/semester-response.dto';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 
 @Controller('semester')
@@ -33,6 +29,49 @@ export class SemesterController {
     return toDto(
       DTO.SemesterResponseDto,
       await this.semesterService.create(dto),
+    );
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Listar semestres',
+  })
+  @ApiOkResponse({ type: DTO.PaginatedSemesterResponseDto })
+  async findAll(
+    @Query() dto: DTO.FindAllSemesterDto,
+  ): Promise<DTO.PaginatedSemesterResponseDto> {
+    return toPaginatedDto(
+      DTO.SemesterResponseDto,
+      await this.semesterService.findAll(dto),
+    );
+  }
+
+  @Get('/all')
+  @ApiOperation({
+    summary: 'Listar semestres ',
+    description: `
+    Obtiene informacion basica de los semestres, segun tipo:  
+    * **select:** retorna solo semestres activos o planeados.
+    * **filter:** retorna semestres segun filtros.
+    * * `,
+  })
+  async findAllForSelect(
+    @Query('type') type: 'select' | 'filter' = 'select',
+  ): Promise<{ id: string; name: string; code: string }[]> {
+    return await this.semesterService.findAllForSelect(type);
+  }
+
+  @Get(':term')
+  @ApiOperation({
+    summary: 'obtener un semestre',
+    description:
+      'Obtiene un semestre en base a un termino de busqueda (code, id).',
+  })
+  @ApiOkResponse({ type: DTO.SemesterResponseDto })
+  async findOne(@Param('term') term: string): Promise<DTO.SemesterResponseDto> {
+    return toDto(
+      DTO.SemesterResponseDto,
+      await this.semesterService.findOne(term),
     );
   }
 
@@ -57,59 +96,12 @@ export class SemesterController {
     type: DTO.ChangeSemesterStateDto,
     description: 'Nuevo estado que se asignará al semestre',
   })
-  @ApiOkResponse({
-    schema: {
-      example: { state: StateSemester.ACTIVE },
-    },
-  })
+  @ApiOkResponse({ type: DTO.ChangeSemesterStateResponseDto })
   async changeState(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DTO.ChangeSemesterStateDto,
   ) {
     return await this.semesterService.changeState(id, dto.state);
-  }
-
-  @Get('/all')
-  @ApiOperation({
-    summary: 'Listar semestres ',
-    description: `
-    Obtiene informacion basica de los semestres, segun tipo:  
-    * **select:** Inclusión opcional de usuarios inactivos.
-    * **filter:** Filtro por rol.
-    * * `,
-  })
-  async findAllForSelect(
-    @Query('type') type: 'select' | 'filter' = 'select',
-  ): Promise<{ id: string; name: string; code: string }[]> {
-    return await this.semesterService.findAllForSelect(type);
-  }
-
-  @Get(':term')
-  @ApiOperation({
-    summary: 'obtener un semestre',
-    description:
-      'Obtiene un semestre en base a un termino de busqueda (code, id).',
-  })
-  @ApiOkResponse({ type: DTO.SemesterResponseDto })
-  async findOne(@Param('term') term: string): Promise<DTO.SemesterResponseDto> {
-    return toDto(
-      DTO.SemesterResponseDto,
-      await this.semesterService.findOne(term),
-    );
-  }
-
-  @Get()
-  @ApiOperation({
-    summary: 'Listar semestres',
-  })
-  @ApiOkResponse({ type: PaginatedSemesterResponseDto })
-  async findAll(
-    @Query() dto: DTO.FindAllSemesterDto,
-  ): Promise<PaginatedSemesterResponseDto> {
-    return toPaginatedDto(
-      DTO.SemesterResponseDto,
-      await this.semesterService.findAll(dto),
-    );
   }
 
   @Delete(':id')

@@ -12,6 +12,8 @@ import { ClassGroupsService } from './class-groups.service';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 import * as DTO from './dto';
+import type { ICurrentUser } from 'src/common/interface/current-user.interface';
+import { GetUser } from 'src/common/decorators';
 
 @Controller('class-groups')
 export class ClassGroupsController {
@@ -35,8 +37,11 @@ export class ClassGroupsController {
     description: 'Obtiene los grupos de clase con paginación',
   })
   @ApiOkResponse({ type: DTO.PaginatedClassGroupResponseDto })
-  async findAll(@Query() query: DTO.FindAllClaasGroupsDto) {
-    const result = await this.classGroupsService.findAll(query);
+  async findAll(
+    @Query() query: DTO.FindAllClaasGroupsDto,
+    @GetUser() user: ICurrentUser,
+  ) {
+    const result = await this.classGroupsService.findAll(query, user);
     return toPaginatedDto(DTO.ClassGroupResponseDto, result);
   }
 
@@ -44,7 +49,7 @@ export class ClassGroupsController {
   @ApiOperation({
     summary: 'Actualizar Grupo de clase',
     description:
-      'Actualiza los datos base del grupo de clase, con algunas excepciones de datos criticos.',
+      'Actualiza los datos basicos del grupo de clases (NO HORARIOS).',
   })
   @ApiOkResponse({ type: DTO.UpdateClassGroupDto })
   async update(
@@ -56,7 +61,14 @@ export class ClassGroupsController {
       await this.classGroupsService.update(id, dto),
     );
   }
+
   @Get(':id/transfer-options')
+  @ApiOperation({
+    summary: 'Grupos para transferencia',
+    description:
+      'Permite obtener una lista con la minimia informacion de los grupos a los cuales se puede transferir un estudiante de un grupo especifico ',
+  })
+  @ApiOkResponse({ type: DTO.ClassGroupOption })
   async findTransferOptions(@Param('id', ParseUUIDPipe) id: string) {
     return toDto(
       DTO.ClassGroupOption,

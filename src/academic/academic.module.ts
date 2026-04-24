@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SubjectsController } from './subjects/subjects.controller';
-import { SubjectsService } from './subjects/subjects.service';
+import { SubjectsService } from './subjects/service/subjects.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SemesterController } from './semester/semester.controller';
 import { SemesterService } from './semester/semester.service';
 import { Semester } from './semester/entities/semester.entity';
 import { Subject } from './subjects/entities/subject.entity';
-import { SubjectsBulkService } from './subjects/subjects-bulk.service';
+import { SubjectsBulkService } from './subjects/service/subjects-bulk.service';
 
 @Module({
   controllers: [SubjectsController, SemesterController],

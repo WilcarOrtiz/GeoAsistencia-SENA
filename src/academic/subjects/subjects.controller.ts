@@ -15,7 +15,7 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
-import { SubjectsService } from './subjects.service';
+import { SubjectsService } from './service/subjects.service';
 import {
   ApiBody,
   ApiConsumes,
@@ -26,12 +26,11 @@ import * as DTO from './dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { PaginatedSubjectResponseDto } from './dto/subject-response.dto';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
-import { SubjectsBulkService } from './subjects-bulk.service';
+import { SubjectsBulkService } from './service/subjects-bulk.service';
 import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
 import express from 'express';
-import { PublicAccess } from 'src/common/decorators';
 
 @Controller('subjects')
 export class SubjectsController {
@@ -52,7 +51,6 @@ export class SubjectsController {
     );
   }
 
-  @PublicAccess()
   @Get('bulk/template')
   @ApiOperation({
     summary: 'Descargar plantilla Excel para carga masiva de asignaturas',
@@ -76,7 +74,6 @@ export class SubjectsController {
     }
   }
 
-  @PublicAccess()
   @Post('bulk/import')
   @ApiOperation({
     summary: 'Importar asignaturas masivamente desde un archivo Excel',

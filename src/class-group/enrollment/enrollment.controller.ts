@@ -18,14 +18,14 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-import { MoveEnrollmentDto } from './dto/move-enrollment.dto';
+
 import { EnrollmentBulkService } from './service/enrollment-bulk.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import express from 'express';
-import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
 import { toDto } from 'src/common/utils/dto-mapper.util';
 import { PublicAccess } from 'src/common/decorators';
+import * as dto from './dto/index';
 
 @Controller('enrollment')
 export class EnrollmentController {
@@ -36,7 +36,7 @@ export class EnrollmentController {
 
   @Post('move')
   @ApiOperation({ summary: 'Mover alumnos de grupo de clase a otro' })
-  async moveStudent(@Body() dto: MoveEnrollmentDto) {
+  async moveStudent(@Body() dto: dto.MoveEnrollmentDto) {
     return await this.enrollmentService.moveStudents(
       dto.students,
       dto.fromGroupId,
@@ -112,11 +112,11 @@ export class EnrollmentController {
   @ApiOperation({
     summary: 'Listar estudiantes matriculados en el grupo',
   })
-  @ApiOkResponse({ type: [EnrollmentResponseDto] })
+  @ApiOkResponse({ type: [dto.EnrollmentResponseDto] })
   async findAll(
     @Param('groupId', ParseUUIDPipe) id: string,
-  ): Promise<EnrollmentResponseDto> {
+  ): Promise<dto.EnrollmentResponseDto> {
     const result = await this.enrollmentService.getStudentsWithAttendance(id);
-    return toDto(EnrollmentResponseDto, result);
+    return toDto(dto.EnrollmentResponseDto, result);
   }
 }

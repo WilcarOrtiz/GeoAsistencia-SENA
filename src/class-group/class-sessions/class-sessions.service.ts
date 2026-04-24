@@ -23,6 +23,7 @@ export class ClassSessionsService {
     private enrollmentService: EnrollmentService,
     private attendancesService: AttendancesService,
   ) {}
+
   async createSession(createClassSessionDto: CreateClassSessionDto) {
     const { group_id, class_topic, latitude, longitude } =
       createClassSessionDto;
@@ -63,6 +64,7 @@ export class ClassSessionsService {
 
     return classSession;
   }
+
   async closeSession(id: string) {
     const session = await this.classSessionRepo.preload({
       id,

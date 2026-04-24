@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateSubjectDto } from './dto/create-subject.dto';
-import { UpdateSubjectDto } from './dto/update-subject.dto';
+import { CreateSubjectDto } from '../dto/create-subject.dto';
+import { UpdateSubjectDto } from '../dto/update-subject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { Subject } from './entities/subject.entity';
+import { Subject } from '../entities/subject.entity';
 import { isUUID } from 'class-validator';
 import {
   PaginatedResponseDto,
@@ -21,14 +21,12 @@ export class SubjectsService {
     private readonly subjectRepo: Repository<Subject>,
   ) {}
 
-  /** Lanza NotFoundException si el subject no existe */
   private async findByIdOrFail(id: string): Promise<Subject> {
     const subject = await this.subjectRepo.findOneBy({ id });
     if (!subject) throw new NotFoundException('Asignatura no encontrada');
     return subject;
   }
 
-  /** Lanza BadRequestException si name o code ya están en uso (excluye excludeId) */
   private async assertNoDuplicate(
     name: string,
     code: string,

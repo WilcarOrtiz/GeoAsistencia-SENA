@@ -8,7 +8,7 @@ import { DataSource } from 'typeorm';
 import { MenuService } from '../access-control-module/menu/menu.service';
 import { UserService } from 'src/users/user/service/user.service';
 import { SemesterService } from '../academic/semester/semester.service';
-import { SubjectsService } from '../academic/subjects/subjects.service';
+import { SubjectsService } from '../academic/subjects/service/subjects.service';
 import { TeacherService } from '../users/teacher/teacher.service';
 import { StudentService } from '../users/student/student.service';
 import { AttendancesService } from '../class-group/attendances/attendances.service';

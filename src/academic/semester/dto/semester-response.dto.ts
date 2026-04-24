@@ -17,18 +17,10 @@ export class SemesterFullBasicDto {
   state!: StateSemester;
 }
 
-export class SemesterResponseDto {
-  @ApiProperty({ example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' })
-  @Expose()
-  id!: string;
-
+export class SemesterResponseDto extends SemesterFullBasicDto {
   @ApiProperty({ example: '2025-1' })
   @Expose()
   code!: string;
-
-  @ApiProperty({ example: 'Primer Semestre Academico 2025' })
-  @Expose()
-  name!: string;
 
   @ApiProperty({ example: 2025 })
   @Expose({ name: 'academic_year' })
@@ -46,13 +38,14 @@ export class SemesterResponseDto {
   @Expose({ name: 'end_date' })
   endDate!: Date;
 
-  @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVE })
-  @Expose()
-  state!: StateSemester;
-
   @ApiProperty({ example: true })
   @Expose()
   is_active!: boolean;
+}
+
+export class ChangeSemesterStateResponseDto {
+  @ApiProperty({ enum: StateSemester })
+  state!: StateSemester;
 }
 
 export class PaginatedSemesterResponseDto extends PaginatedResponseDto<SemesterResponseDto> {
