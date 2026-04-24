@@ -2,11 +2,13 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { SupabaseAdminService } from 'src/supabase/supabase-admin/supabase-admin.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(private readonly supabaseAdmin: SupabaseAdminService) {}
 
   async updateUserEmail(authId: string, email: string) {
@@ -21,32 +23,34 @@ export class AuthService {
       if (error.message.includes('already registered')) {
         throw new BadRequestException('Email ya está en uso');
       }
-
-      throw new InternalServerErrorException(error.message);
+      this.logger.error(
+        `Error actualizando email en Supabase: ${error.message}`,
+      );
+      throw new InternalServerErrorException('Error al actualizar el email');
     }
   }
 
   async createUserCredentials(email: string, id: string) {
     const { data, error } =
       await this.supabaseAdmin.client.auth.admin.createUser({
-        email: email,
+        email,
         password: id,
         email_confirm: true,
       });
 
     if (error) {
-      if (error.message.includes('already registered'))
-        throw new BadRequestException('Email is already in use');
+      if (error.message.includes('already registered')) {
+        throw new BadRequestException('El correo ya está en uso');
+      }
 
-      throw new InternalServerErrorException(
-        `Supabase error: ${error.message}`,
-      );
+      this.logger.error(`Error creando usuario en Supabase: ${error.message}`);
+      throw new InternalServerErrorException('No se pudo crear el usuario');
     }
 
-    if (!data?.user)
-      throw new InternalServerErrorException(
-        'The user could not be created in Auth Supabase',
-      );
+    if (!data?.user) {
+      this.logger.error('Supabase no retornó el usuario tras crearlo');
+      throw new InternalServerErrorException('No se pudo crear el usuario');
+    }
 
     return data.user.id;
   }
@@ -74,9 +78,8 @@ export class AuthService {
         data.users.map(async (user) => {
           try {
             await supabase.auth.admin.deleteUser(user.id);
-          } catch (e) {
-            console.log(e);
-            console.error(`The user ${user.id} could not be deleted in Auth`);
+          } catch (error) {
+            this.logger.error(error);
           }
         }),
       );

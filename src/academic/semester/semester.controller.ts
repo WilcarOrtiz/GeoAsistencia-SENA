@@ -55,6 +55,7 @@ export class SemesterController {
     * **filter:** retorna semestres segun filtros.
     * * `,
   })
+  @ApiOkResponse({ type: DTO.SemesterSelectDto })
   async findAllForSelect(
     @Query('type') type: 'select' | 'filter' = 'select',
   ): Promise<DTO.SemesterSelectDto> {
@@ -88,7 +89,10 @@ export class SemesterController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DTO.ChangeSemesterStateDto,
   ) {
-    return await this.semesterService.changeState(id, dto.state);
+    return toDto(
+      DTO.ChangeSemesterStateResponseDto,
+      await this.semesterService.changeState(id, dto.state),
+    );
   }
 
   @Delete(':id')
@@ -102,7 +106,9 @@ export class SemesterController {
       },
     },
   })
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
     return await this.semesterService.remove(id);
   }
 }

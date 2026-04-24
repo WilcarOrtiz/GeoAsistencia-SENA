@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { RoleListItemDto } from 'src/access-control-module/roles/dto/roles-response.dto';
-import { NavigationItemDto } from 'src/access-control-module/menu/dto/menu-response.dto';
+import { NavigationItemDto } from 'src/access-control-module/menu/dto/navigation-item.dto';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 
 export class UserBaseResponseDto {

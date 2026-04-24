@@ -19,10 +19,10 @@ export class RoleController {
     @Param('roleId', ParseUUIDPipe) roleId: string,
     @Param('permissionId', ParseUUIDPipe) permissionId: string,
   ): Promise<{ message: string }> {
-    await this.roleService.removePermissionFromRole(roleId, permissionId);
-    return {
-      message: 'Permiso removido correctamente',
-    };
+    return await this.roleService.removePermissionFromRole(
+      roleId,
+      permissionId,
+    );
   }
 
   @Patch(':roleId/permissions/:permissionId/add')
@@ -36,10 +36,7 @@ export class RoleController {
     @Param('roleId', ParseUUIDPipe) roleId: string,
     @Param('permissionId', ParseUUIDPipe) permissionId: string,
   ): Promise<{ message: string }> {
-    await this.roleService.addPermissionToRole(roleId, permissionId);
-    return {
-      message: 'Permiso agregado correctamente',
-    };
+    return await this.roleService.addPermissionToRole(roleId, permissionId);
   }
 
   @Get()

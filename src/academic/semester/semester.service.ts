@@ -236,7 +236,6 @@ export class SemesterService {
         'No se puede eliminar el semestre porque tiene grupos de clase asociados',
       );
     }
-
     semester.is_active = false;
     await this.semesterRepo.save(semester);
     return { message: 'Semestre eliminado correctamente' };

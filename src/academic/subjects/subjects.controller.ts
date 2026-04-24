@@ -42,7 +42,9 @@ export class SubjectsController {
     summary: 'Registrar asignatura',
   })
   @ApiOkResponse({ type: DTO.SubjectResponseDto })
-  async create(@Body() dto: DTO.CreateSubjectDto) {
+  async create(
+    @Body() dto: DTO.CreateSubjectDto,
+  ): Promise<DTO.CreateSubjectDto> {
     return toDto(
       DTO.SubjectResponseDto,
       await this.subjectsService.create(dto),
@@ -78,9 +80,14 @@ export class SubjectsController {
       },
     }),
   )
-  async bulkImport(@UploadedFile() file: Express.Multer.File) {
+  async bulkImport(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<DTO.BulkCreateResponseDto> {
     if (!file) throw new BadRequestException('No se recibió ningún archivo');
-    return this.subjectsBulkService.bulkImport(file.buffer);
+    return toDto(
+      DTO.BulkCreateResponseDto,
+      await this.subjectsBulkService.bulkImport(file.buffer),
+    );
   }
 
   @Get()
@@ -127,8 +134,12 @@ export class SubjectsController {
     description:
       'Obtiene la informacion minima de las asignatura para selectores',
   })
-  async findAllForSelect(): Promise<SubjectSelectDto[]> {
-    return await this.subjectsService.findAllForSelect();
+  @ApiOkResponse({ type: SubjectSelectDto })
+  async findAllForSelect(): Promise<SubjectSelectDto> {
+    return toDto(
+      SubjectSelectDto,
+      await this.subjectsService.findAllForSelect(),
+    );
   }
 
   @Get(':term')
@@ -138,7 +149,7 @@ export class SubjectsController {
       'Obtiene una asignatura en base a un termino de busqueda (code, id, name).',
   })
   @ApiOkResponse({ type: DTO.SubjectResponseDto })
-  async findOne(@Param('term') term: string) {
+  async findOne(@Param('term') term: string): Promise<DTO.SubjectResponseDto> {
     return toDto(
       DTO.SubjectResponseDto,
       await this.subjectsService.findOne(term),
@@ -153,7 +164,7 @@ export class SubjectsController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DTO.UpdateSubjectDto,
-  ) {
+  ): Promise<DTO.SubjectResponseDto> {
     return toDto(
       DTO.SubjectResponseDto,
       await this.subjectsService.update(id, dto),
@@ -171,7 +182,7 @@ export class SubjectsController {
       },
     },
   })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
     return this.subjectsService.remove(id);
   }
 }

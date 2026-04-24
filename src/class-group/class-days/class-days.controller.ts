@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Param, Get, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Get,
+  Patch,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ClassDaysService } from './class-days.service';
 import { CreateClassDayDto } from './dto/create-class-day.dto';
 import { ClassDayResponseDto } from './dto/class-day-response.dto';
@@ -17,7 +25,7 @@ export class ClassDaysController {
     type: ClassDayResponseDto,
     isArray: true,
   })
-  async findByGroup(@Param('id') id: string) {
+  async findByGroup(@Param('id', ParseUUIDPipe) id: string) {
     return toDto(
       ClassDayResponseDto,
       await this.classDaysService.findByGroup(id),
@@ -28,7 +36,7 @@ export class ClassDaysController {
   @ApiOperation({
     summary: 'Elimianr un dia de clase',
   })
-  deactivate(@Param('id') id: string) {
+  deactivate(@Param('id', ParseUUIDPipe) id: string) {
     return this.classDaysService.deactivate(id);
   }
 

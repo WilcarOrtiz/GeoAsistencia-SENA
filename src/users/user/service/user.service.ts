@@ -148,7 +148,8 @@ export class UserService {
     });
 
     if (!user) throw new NotFoundException(`Usuario no encontrado`);
-    if (!user) throw new BadRequestException(`usuario inactivo`);
+    if (!user.is_active) throw new BadRequestException(`Usuario inactivo`);
+
     return this.userRepo.save(user);
   }
 
@@ -181,7 +182,6 @@ export class UserService {
       .where('user.auth_id = :auth_id', { auth_id })
       .getOne();
 
-    console.log('usuario encontrado ', user);
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
   }
@@ -250,22 +250,10 @@ export class UserService {
   }
 
   async validateActiveUserByAuthId(authId: string) {
-    //const user = await this.activeUserWithPermissionsQuery(authId).getOne();
-    console.log('>>> USANDO FINDONE'); // 👈 si no ves esto, el cambio no aplicó
-
     const user = await this.userRepo.findOne({
       where: { auth_id: authId, is_active: true },
       relations: ['roles', 'roles.permissions', 'student', 'teacher'],
     });
-
-    console.log(
-      'permisos encontrados:',
-      user?.roles.map((r) => ({
-        role: r.name,
-        permisos: r.permissions?.length,
-        nombres: r.permissions?.map((p) => p.name),
-      })),
-    );
 
     const rolesValidos = user!.getValidRoles();
     const { names, ids } = this.rolesService.getUniquePermissions(rolesValidos);

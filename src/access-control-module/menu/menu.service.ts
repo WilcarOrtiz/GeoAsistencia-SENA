@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PermissionsService } from '../permissions/permissions.service';
 import { Menu } from './entities/menu.entity';
 import { IMenuSystemCreate } from './interface/menu-system.interface';
-import { NavigationItemDto } from './dto/menu-response.dto';
+import { INavigationItem } from './interface/navigationItem.interface';
 
 @Injectable()
 export class MenuService {
@@ -61,7 +61,7 @@ export class MenuService {
   async getMenuTreeByPermissions(
     permissionIds: string[],
     manager?: EntityManager,
-  ): Promise<NavigationItemDto[]> {
+  ): Promise<INavigationItem[]> {
     const repo = this.getRepo(manager);
     const allMenus = await repo.find({
       relations: ['permission'],
@@ -74,12 +74,12 @@ export class MenuService {
     allMenus: Menu[],
     permissionIds: string[],
     parentId: string | null = null,
-  ): NavigationItemDto[] {
+  ): INavigationItem[] {
     const currentLevel = allMenus.filter((m) =>
       parentId === null ? !m.parent_id : m.parent_id === parentId,
     );
 
-    const tree: NavigationItemDto[] = [];
+    const tree: INavigationItem[] = [];
 
     for (const menu of currentLevel) {
       const children = this.buildTree(allMenus, permissionIds, menu.id);

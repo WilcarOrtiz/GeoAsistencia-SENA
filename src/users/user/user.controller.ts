@@ -153,7 +153,6 @@ export class UserController {
   })
   @ApiOkResponse({ type: DTO.UserMeResponseDto })
   async getProfile(@GetUser() user: ICurrentUser) {
-    console.log('user', user);
     return await this.userService.getUserProfile(user);
   }
 
@@ -259,6 +258,3 @@ export class UserController {
     return this.userBulkService.bulkImport(file.buffer);
   }
 }
-
-//TODO: borrar todo lo referente a   GetAccessCriteria y AccessCriteria,
-// 1. revisar lo de la opocion de mandar correo de actualizaicon para un uesuario

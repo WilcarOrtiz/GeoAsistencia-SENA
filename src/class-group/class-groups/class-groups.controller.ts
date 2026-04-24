@@ -82,7 +82,7 @@ export class ClassGroupsController {
     description: 'Obtiene el detalle de un grupo de clase por id',
   })
   @ApiOkResponse({ type: DTO.ClassGroupResponseDto })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return toDto(
       DTO.ClassGroupResponseDto,
       await this.classGroupsService.findOne(id),

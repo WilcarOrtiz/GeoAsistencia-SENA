@@ -107,7 +107,7 @@ export class RolesService {
   async removePermissionFromRole(
     roleId: string,
     permissionId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     await this.findOneById(roleId);
 
     await this.roleRepo
@@ -115,22 +115,31 @@ export class RolesService {
       .relation(Role, 'permissions')
       .of(roleId)
       .remove(permissionId);
+
+    return { message: 'Permiso removido correctamente' };
   }
 
   async addPermissionToRole(
     roleId: string,
     permissionId: string,
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const role = await this.findOneById(roleId, undefined, true);
 
     const alreadyHas = role.permissions.some((p) => p.id === permissionId);
-    if (alreadyHas) return;
+    if (alreadyHas)
+      return {
+        message: 'Ya cuenta con el permiso',
+      };
 
     await this.roleRepo
       .createQueryBuilder()
       .relation(Role, 'permissions')
       .of(roleId)
       .add(permissionId);
+
+    return {
+      message: 'Permiso agregado correctamente',
+    };
   }
 
   async findAll(): Promise<Role[]> {

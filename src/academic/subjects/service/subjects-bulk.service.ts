@@ -59,7 +59,7 @@ export class SubjectsBulkService {
 
     const noteCell = sheet.getCell('D1');
     noteCell.value =
-      '⚠ Los campos marcados con (*) son obligatorios. El código debe ser único (ej: PRO234, MAT101).';
+      ' Los campos marcados con (*) son obligatorios. El código debe ser único (ej: PRO234, MAT101).';
     noteCell.font = { italic: true, size: 9, color: { argb: 'FF555555' } };
 
     const buffer = await workbook.xlsx.writeBuffer();

@@ -20,7 +20,7 @@ import { AcademicModule } from './academic/academic.module';
         rejectUnauthorized: false,
       },
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
     CommonModule,
     SeedModule,
