@@ -153,6 +153,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: DTO.UserMeResponseDto })
   async getProfile(@GetUser() user: ICurrentUser) {
+    console.log('user', user);
     return await this.userService.getUserProfile(user);
   }
 

@@ -5,6 +5,20 @@ import { SubjectFullBasicDto } from 'src/academic/subjects/dto/subject-response.
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 import { TeacherFullBasicDto } from 'src/users/teacher/dto/teacher-response.dto';
 
+export class ClassGroupOption {
+  @ApiProperty({ example: 'c7f46d28-2276-4da0-b96a-fba6f442ac0d' })
+  @Expose()
+  id!: string;
+
+  @ApiProperty({ example: 'GR-101' })
+  @Expose()
+  code!: string;
+
+  @ApiProperty({ example: 'Grupo A' })
+  @Expose()
+  name!: string;
+}
+
 export class ClassGroupResponseDto {
   @ApiProperty({ example: 'c7f46d28-2276-4da0-b96a-fba6f442ac0d' })
   @Expose()

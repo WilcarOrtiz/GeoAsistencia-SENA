@@ -12,12 +12,20 @@ import {
   Get,
 } from '@nestjs/common';
 import { EnrollmentService } from './service/enrollment.service';
-import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { MoveEnrollmentDto } from './dto/move-enrollment.dto';
 import { EnrollmentBulkService } from './service/enrollment-bulk.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import express from 'express';
+import { EnrollmentResponseDto } from './dto/enrollment-response.dto';
+import { toDto } from 'src/common/utils/dto-mapper.util';
+import { PublicAccess } from 'src/common/decorators';
 
 @Controller('enrollment')
 export class EnrollmentController {
@@ -97,5 +105,18 @@ export class EnrollmentController {
   ) {
     if (!file) throw new BadRequestException('No se recibió ningún archivo');
     return this.enrollmentBulkService.bulkEnrollment(groupId, file.buffer);
+  }
+
+  @PublicAccess()
+  @Get(':groupId')
+  @ApiOperation({
+    summary: 'Listar estudiantes matriculados en el grupo',
+  })
+  @ApiOkResponse({ type: [EnrollmentResponseDto] })
+  async findAll(
+    @Param('groupId', ParseUUIDPipe) id: string,
+  ): Promise<EnrollmentResponseDto> {
+    const result = await this.enrollmentService.getStudentsWithAttendance(id);
+    return toDto(EnrollmentResponseDto, result);
   }
 }

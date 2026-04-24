@@ -45,6 +45,8 @@ export class SupabaseAuthGuard implements CanActivate {
       if (!payload.sub)
         throw new UnauthorizedException('Malformed token: missing identifier');
 
+      console.log('payload de supabase guard', payload.sub);
+
       const result = await this.userService.validateActiveUserByAuthId(
         payload.sub,
       );
@@ -54,8 +56,8 @@ export class SupabaseAuthGuard implements CanActivate {
         result;
 
       request.user = {
-        authId: user.auth_id,
-        ID_user: user.ID_user,
+        authId: user!.auth_id,
+        ID_user: user!.ID_user,
         email: (payload.email as string) || '',
         roles: roles.map((r) => ({
           id: r.id,
@@ -63,8 +65,8 @@ export class SupabaseAuthGuard implements CanActivate {
         })),
         permissions: processedPermissions,
         permissionIds: processedPermissionIds,
-        fullName: user.fullName,
-        is_active: user.is_active,
+        fullName: user!.fullName,
+        is_active: user!.is_active,
       };
 
       return true;

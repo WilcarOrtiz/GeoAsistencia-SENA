@@ -10,22 +10,88 @@ interface SeedData {
   roles: IRoleSystemCreate[];
   menus: IMenuSeed[]; // Cambiado a plural y arreglo
 }
-
 export const initialData: SeedData = {
   permissions: [
+    // =========================
+    // 👥 USERS
+    // =========================
     { name: 'ver_usuarios', description: 'Ver lista de usuarios' },
-    { name: 'registrar_usuario', description: 'Registrar nuevo usuario' },
+    { name: 'crear_usuario', description: 'Crear usuarios' },
+    { name: 'editar_usuario', description: 'Editar usuarios' },
+    { name: 'activar_usuario', description: 'Activar usuarios' },
+    { name: 'desactivar_usuario', description: 'Desactivar usuarios' },
+    { name: 'importar_usuarios', description: 'Importar usuarios desde Excel' },
+    {
+      name: 'recuperar_password',
+      description: 'Enviar recuperación de contraseña',
+    },
+    {
+      name: 'descargar_plantilla_usuarios',
+      description: 'Descargar plantilla de usuarios',
+    },
 
-    { name: 'ver_asignaturas', description: 'Ver lista de asignaturas' },
-    { name: 'registrar_asignatura', description: 'Registrar asignatura' },
+    // =========================
+    // 📚 SUBJECTS
+    // =========================
+    { name: 'ver_asignaturas', description: 'Ver asignaturas' },
+    { name: 'crear_asignatura', description: 'Crear asignatura' },
     { name: 'editar_asignatura', description: 'Editar asignatura' },
+    { name: 'eliminar_asignatura', description: 'Eliminar asignatura' },
+    { name: 'importar_asignaturas', description: 'Importar asignaturas Excel' },
+    {
+      name: 'descargar_plantilla_asignaturas',
+      description: 'Descargar plantilla asignaturas',
+    },
 
-    { name: 'gestionar_grupos', description: 'Administrar grupos y listas' },
-    { name: 'editar_lista', description: 'Editar lista del sistema' },
-    { name: 'editar_grupo', description: 'Editar grupo del sistema' },
+    // =========================
+    // 📅 SEMESTERS
+    // =========================
+    {
+      name: 'planeacion',
+      description: 'Acceso al panel de planeacion academica',
+    },
+    { name: 'ver_semestres', description: 'Ver semestres' },
+    { name: 'crear_semestre', description: 'Crear semestre' },
+    { name: 'editar_semestre', description: 'Editar semestre' },
+    {
+      name: 'cambiar_estado_semestre',
+      description: 'Activar/Desactivar semestre',
+    },
+    { name: 'eliminar_semestre', description: 'Eliminar semestre' },
 
-    { name: 'ver_metricas', description: 'Ver métricas y reportes' },
-    { name: 'exportar_datos', description: 'Exportar informes en PDF/Excel' },
+    // =========================
+    // 🎓 CLASS GROUPS
+    // =========================
+    { name: 'ver_grupos', description: 'Ver grupos de clase' },
+    { name: 'crear_grupo', description: 'Crear grupo de clase' },
+    { name: 'editar_grupo', description: 'Editar información de grupo' },
+    { name: 'eliminar_grupo', description: 'Eliminar grupo' },
+
+    { name: 'gestionar_horarios', description: 'Editar horarios del grupo' },
+
+    { name: 'ver_estudiantes_grupo', description: 'Ver estudiantes del grupo' },
+    { name: 'matricular_estudiantes', description: 'Matricular estudiantes' },
+    { name: 'retirar_estudiantes', description: 'Retirar estudiantes' },
+    {
+      name: 'transferir_estudiantes',
+      description: 'Transferir estudiantes entre grupos',
+    },
+
+    {
+      name: 'descargar_plantilla_grupo',
+      description: 'Descargar plantilla de matrícula',
+    },
+
+    // =========================
+    // 🔐 ROLES & PERMISSIONS
+    // =========================
+    { name: 'gestionar_roles', description: 'Asignar permisos a roles' },
+
+    // =========================
+    // 📊 REPORTS
+    // =========================
+    { name: 'ver_reportes', description: 'Ver métricas y reportes' },
+    { name: 'exportar_reportes', description: 'Exportar datos (PDF/Excel)' },
   ],
 
   roles: [
@@ -33,115 +99,137 @@ export const initialData: SeedData = {
       name: ValidRole.ADMIN,
       description: 'Administrador con acceso total',
       permissions: [
+        'planeacion',
         'ver_usuarios',
-        'registrar_usuario',
+        'crear_usuario',
+        'editar_usuario',
+        'activar_usuario',
+        'desactivar_usuario',
+        'importar_usuarios',
+        'recuperar_password',
+        'descargar_plantilla_usuarios',
+
         'ver_asignaturas',
-        'registrar_asignatura',
+        'crear_asignatura',
         'editar_asignatura',
-        'gestionar_grupos',
-        'editar_lista',
+        'eliminar_asignatura',
+        'importar_asignaturas',
+        'descargar_plantilla_asignaturas',
+
+        'ver_semestres',
+        'crear_semestre',
+        'editar_semestre',
+        'cambiar_estado_semestre',
+        'eliminar_semestre',
+
+        'ver_grupos',
+        'crear_grupo',
         'editar_grupo',
-        'ver_metricas',
-        'exportar_datos',
+        'eliminar_grupo',
+        'gestionar_horarios',
+        'ver_estudiantes_grupo',
+        'matricular_estudiantes',
+        'retirar_estudiantes',
+        'transferir_estudiantes',
+        'descargar_plantilla_grupo',
+
+        'gestionar_roles',
+
+        'ver_reportes',
+        'exportar_reportes',
       ],
     },
+
     {
       name: ValidRole.TEACHER,
-      description: 'Docente con acceso limitado',
+      description: 'Docente',
       permissions: [
         'ver_asignaturas',
-        'editar_asignatura',
-        'gestionar_grupos',
-        'ver_metricas',
+        'ver_semestres',
+
+        'ver_grupos',
+        'ver_estudiantes_grupo',
+
+        'matricular_estudiantes',
+        'retirar_estudiantes',
+        'transferir_estudiantes',
+
+        'gestionar_horarios',
+
+        'ver_reportes',
       ],
     },
+
     {
       name: ValidRole.STUDENT,
-      description: 'Estudiante con con acceso limitado',
-      permissions: [
-        'ver_asignaturas',
-        'editar_asignatura',
-        'gestionar_grupos',
-        'ver_metricas',
-      ],
+      description: 'Estudiante',
+      permissions: ['ver_asignaturas', 'ver_grupos', 'ver_estudiantes_grupo'],
     },
   ],
 
   menus: [
-    // --- NIVEL RAÍZ (PADRES) ---
+    // =========================
+    // DASHBOARD
+    // =========================
     {
-      name: 'Panel Principal',
+      name: 'Dashboard',
       route: '/dashboard',
       icon: 'LayoutDashboard',
-      permission_name: 'ver_metricas',
+      permission_name: 'ver_reportes',
       order_index: 1,
     },
+    // =========================
+    // ROLES
+    // =========================
     {
-      name: 'Usuarios',
-      icon: 'Users',
-      permission_name: 'ver_usuarios',
+      name: 'Roles y permisos',
+      route: '/roles',
+      icon: 'ShieldUser',
+      permission_name: 'gestionar_roles',
       order_index: 2,
     },
+    // =========================
+    // USERS
+    // =========================
     {
-      name: 'Académico',
-      icon: 'BookOpen',
-      permission_name: 'ver_asignaturas',
+      name: 'Gestion de usuario',
+      route: '/users',
+      icon: 'UserCog',
+      permission_name: 'ver_usuarios',
       order_index: 3,
     },
+    // =========================
+    // CLASS GROUP
+    // =========================
     {
-      name: 'Reportes',
-      icon: 'BarChart3',
-      permission_name: 'ver_metricas',
+      name: 'Gestion de grupo',
+      route: '/academic-groups',
+      icon: 'LayoutGrid',
+      permission_name: 'ver_grupos',
       order_index: 4,
     },
-
-    // --- SUBMENÚS (HIJOS) ---
-
-    // Hijos de Usuarios
+    // =========================
+    // ACADEMIC
+    // =========================
     {
-      name: 'Lista de Usuarios',
-      route: '/dashboard/usuarios',
-      permission_name: 'ver_usuarios',
-      parent_name: 'Usuarios',
+      name: 'Planeación académica',
+      route: 'CalendarClock',
+      icon: 'BarChart3',
+      permission_name: 'planeacion',
+      order_index: 5,
+    },
+    {
+      name: 'Semestres',
+      route: '/planning-academic/semester',
+      parent_name: 'Planeación académica',
+      permission_name: 'ver_semestres',
       order_index: 1,
     },
-    {
-      name: 'Nuevo Usuario',
-      route: '/dashboard/usuarios/nuevo',
-      permission_name: 'registrar_usuario',
-      parent_name: 'Usuarios',
-      order_index: 2,
-    },
-
-    // Hijos de Académico
     {
       name: 'Asignaturas',
-      route: '/dashboard/academico/asignaturas',
+      route: '/planning-academic/subject',
+      parent_name: 'Planeación académica',
       permission_name: 'ver_asignaturas',
-      parent_name: 'Académico',
-      order_index: 1,
-    },
-    {
-      name: 'Gestión de Grupos',
-      route: '/dashboard/academico/grupos',
-      permission_name: 'gestionar_grupos',
-      parent_name: 'Académico',
-      order_index: 2,
-    },
-
-    // Hijos de Reportes
-    {
-      name: 'Estadísticas Globales',
-      route: '/dashboard/reportes/stats',
-      permission_name: 'ver_metricas',
-      parent_name: 'Reportes',
-      order_index: 1,
-    },
-    {
-      name: 'Descargas',
-      route: '/dashboard/reportes/descargas',
-      permission_name: 'exportar_datos',
-      parent_name: 'Reportes',
       order_index: 2,
     },
   ],

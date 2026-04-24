@@ -11,6 +11,10 @@ export class SemesterFullBasicDto {
   @ApiProperty({ example: 'Semestre - 2026-2' })
   @Expose()
   name!: string;
+
+  @ApiProperty({ enum: StateSemester, example: StateSemester.ACTIVE })
+  @Expose()
+  state!: StateSemester;
 }
 
 export class SemesterResponseDto {

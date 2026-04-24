@@ -56,6 +56,13 @@ export class ClassGroupsController {
       await this.classGroupsService.update(id, dto),
     );
   }
+  @Get(':id/transfer-options')
+  async findTransferOptions(@Param('id', ParseUUIDPipe) id: string) {
+    return toDto(
+      DTO.ClassGroupOption,
+      await this.classGroupsService.findTransferOptions(id),
+    );
+  }
 
   @Get(':id')
   @ApiOperation({

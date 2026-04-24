@@ -233,7 +233,7 @@ export class UserService {
 
   async getUserProfile(currentUser: ICurrentUser): Promise<UserMeResponseDto> {
     const navigation = await this.menuService.getMenuTreeByPermissions(
-      currentUser.permissionIds,
+      currentUser.permissions,
     );
 
     return {
@@ -250,10 +250,24 @@ export class UserService {
   }
 
   async validateActiveUserByAuthId(authId: string) {
-    const user = await this.activeUserWithPermissionsQuery(authId).getOne();
-    if (!user) return null;
+    //const user = await this.activeUserWithPermissionsQuery(authId).getOne();
+    console.log('>>> USANDO FINDONE'); // 👈 si no ves esto, el cambio no aplicó
 
-    const rolesValidos = user.getValidRoles();
+    const user = await this.userRepo.findOne({
+      where: { auth_id: authId, is_active: true },
+      relations: ['roles', 'roles.permissions', 'student', 'teacher'],
+    });
+
+    console.log(
+      'permisos encontrados:',
+      user?.roles.map((r) => ({
+        role: r.name,
+        permisos: r.permissions?.length,
+        nombres: r.permissions?.map((p) => p.name),
+      })),
+    );
+
+    const rolesValidos = user!.getValidRoles();
     const { names, ids } = this.rolesService.getUniquePermissions(rolesValidos);
 
     return {

@@ -12,6 +12,8 @@ import { SubjectsService } from 'src/academic/subjects/subjects.service';
 import { TeacherService } from 'src/users/teacher/teacher.service';
 import { FindAllClaasGroupsDto } from './dto/find-all-classgroup.dto';
 import { UpdateClassGroupDto } from './dto/update-class-group.dto';
+import { StateSemester } from 'src/common/enums/state_semester.enum';
+import { ClassGroupOption } from './dto';
 
 @Injectable()
 export class ClassGroupsService {
@@ -24,7 +26,11 @@ export class ClassGroupsService {
   ) {}
 
   private mapGroup(
-    group: ClassGroup & { total_students?: number; total_sessions?: number },
+    group: ClassGroup & {
+      semester?: { id: string; name: string; state: StateSemester };
+      total_students?: number;
+      total_sessions?: number;
+    },
   ) {
     return {
       id: group.id,
@@ -42,9 +48,12 @@ export class ClassGroupsService {
         : null,
 
       semester: group.semester
-        ? { id: group.semester.id, name: group.semester.name }
+        ? {
+            id: group.semester.id,
+            name: group.semester.name,
+            state: group.semester.state,
+          }
         : null,
-
       teacher: group.teacher
         ? {
             id: group.teacher.auth_id,
@@ -95,12 +104,41 @@ export class ClassGroupsService {
         'subject.name',
         'semester.id',
         'semester.name',
+        'semester.state',
         'teacher.auth_id',
         'user.first_name',
         'user.middle_name',
         'user.last_name',
         'user.second_last_name',
       ]);
+  }
+
+  async findTransferOptions(groupId: string): Promise<ClassGroupOption[]> {
+    const currentGroup = await this.classGroupRepo.findOne({
+      where: { id: groupId, is_active: true },
+      relations: ['subject', 'semester'],
+    });
+
+    if (!currentGroup) {
+      throw new NotFoundException('Grupo de clase no encontrado');
+    }
+
+    const groups = await this.classGroupRepo.find({
+      where: {
+        subject: { id: currentGroup.subject.id },
+        semester: { id: currentGroup.semester.id },
+        is_active: true,
+      },
+      relations: ['subject', 'semester'],
+    });
+
+    return groups
+      .filter((g) => g.id !== groupId) // excluir el actual
+      .map((g) => ({
+        id: g.id,
+        name: g.name,
+        code: g.code,
+      }));
   }
 
   async create(createClassGroupDto: CreateClassGroupDto): Promise<ClassGroup> {
@@ -268,3 +306,5 @@ export class ClassGroupsService {
     return await this.classGroupRepo.save(group);
   }
 }
+
+//TODO: en lo de listar debo filrtrar si es docente solo los activos y si es admin pues todo ajsjaa

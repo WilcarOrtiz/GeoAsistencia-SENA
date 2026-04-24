@@ -1,3 +1,4 @@
+export { ClassGroupOption } from './class-group-response.dto';
 export {
   ClassGroupResponseDto,
   PaginatedClassGroupResponseDto,

@@ -84,7 +84,7 @@ export class MenuService {
     for (const menu of currentLevel) {
       const children = this.buildTree(allMenus, permissionIds, menu.id);
       const hasDirectPermission =
-        !menu.permission || permissionIds.includes(menu.permission.id);
+        !menu.permission || permissionIds.includes(menu.permission.name);
 
       const hasAllowedChildren = children.length > 0;
 

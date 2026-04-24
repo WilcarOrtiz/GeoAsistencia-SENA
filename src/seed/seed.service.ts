@@ -44,43 +44,42 @@ export class SeedService {
 
   async runSeed() {
     return await this.dataSource.transaction(async (manager) => {
-      // 1. LO MÁS DEPENDIENTE (hijos extremos)
+      // =========================
+      // 1. BORRADO (orden inverso)
+      // =========================
       await this.attendancesService.removeSeed(manager);
-
-      // 2. sesiones y asistencia dependen de esto
       await this.classSessionsService.removeSeed(manager);
-
-      // 3. matrícula depende de grupos y estudiantes
       await this.enrollmentService.removeSeed(manager);
-
-      // 4. días dependen de grupos
       await this.classDaysService.removeSeed(manager);
-
-      // 5. grupos (dependen de teacher, subject, semester)
       await this.classGroupsService.removeSeed(manager);
 
-      // 6. ahora sí entidades base relacionadas
       await this.teacherService.removeSeed(manager);
       await this.studentService.removeSeed(manager);
 
-      // 7. entidades independientes académicas
       await this.subjectsService.removeSeed(manager);
       await this.semesterService.removeSeed(manager);
 
-      // 8. seguridad (usuarios dependen de roles/permisos)
       await this.userService.deleteAllUser(manager);
+
       await this.rolesService.deleteAllRoles(manager);
       await this.menuService.deleteAll(manager);
       await this.permissionService.deleteAll(manager);
 
+      // =========================
+      // 2. CREACIÓN (orden correcto)
+      // =========================
+
+      // 🔐 1. permissions primero
       for (const permission of initialData.permissions) {
         await this.permissionService.create(permission, manager);
       }
 
+      // 🔐 2. roles después
       for (const role of initialData.roles) {
         await this.rolesService.create(role, manager);
       }
 
+      // 📋 3. menus después de permissions
       const parentMenus = initialData.menus.filter((m) => !m.parent_name);
       const createdParentsMap = new Map<string, string>();
 
@@ -93,20 +92,24 @@ export class SeedService {
 
       for (const menuDto of childMenus) {
         const parentId = createdParentsMap.get(menuDto.parent_name!);
-        if (!parentId)
-          throw new Error(
-            `No se encontró el ID del padre para el menú: ${menuDto.name}`,
-          );
-
         await this.menuService.create(
-          {
-            ...menuDto,
-            parent_id: parentId,
-          },
+          { ...menuDto, parent_id: parentId },
           manager,
         );
       }
-      return 'SEED EXECUTED SUCCESSFULLY';
+
+      // 👤 4. users
+      // 👨‍🏫 5. teachers
+      // 🎓 6. students
+
+      // 📚 7. academic base
+      // 🏫 8. groups
+      // 📅 9. days
+      // 📆 10. sessions
+      // 🧾 11. enrollments
+      // 📊 12. attendances
+
+      return 'SEED OK';
     });
   }
 }

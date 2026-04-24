@@ -103,22 +103,38 @@ export class EnrollmentBulkService {
       failed: [...errors],
     };
 
-    const studentIds = rows.map((r) => r.ID);
+    const validRows = rows.filter(
+      (_, i) => !errors.some((e) => e.row === i + 2),
+    );
+
+    const resolvedIds: string[] = [];
+
+    for (let i = 0; i < validRows.length; i++) {
+      try {
+        const uuid = await this.enrollmentService.findStudentUuidByIdUser(
+          validRows[i].ID,
+        );
+        resolvedIds.push(uuid);
+      } catch {
+        result.failed.push({
+          row: i + 2,
+          ID: validRows[i].ID,
+          errors: [`No se encontró estudiante con ID: ${validRows[i].ID}`],
+        });
+      }
+    }
+
+    if (resolvedIds.length === 0) return result;
 
     try {
       const res = await this.enrollmentService.enrollStudents(
         groupId,
-        studentIds,
+        resolvedIds,
       );
-      result.enrolled = studentIds.length - errors.length;
+      result.enrolled = resolvedIds.length;
       this.logger.log(res.message);
     } catch (error: any) {
-      const message = (error as Error).message ?? 'Error desconocido';
-      this.logger.error(message);
-      result.failed.push({
-        row: 0,
-        errors: [message],
-      });
+      result.failed.push({ row: 0, errors: [(error as Error).message] });
     }
 
     return result;
