@@ -2,10 +2,10 @@
   <img src="https://nestjs.com/img/logo-small.svg" width="80" alt="NestJS" />
 </p>
 
-<h1 align="center">GeoAsistencia SENA</h1>
+<h1 align="center">GeoAsistencia</h1>
 
 <p align="center">
-  Sistema de control de asistencia basado en geolocalización GPS para el SENA.<br/>
+  Sistema de control de asistencia basado en geolocalización GPS.<br/>
   El docente abre la sesión desde su ubicación — el estudiante marca asistencia solo si está físicamente presente.
 </p>
 

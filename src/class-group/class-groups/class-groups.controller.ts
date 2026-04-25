@@ -24,7 +24,9 @@ export class ClassGroupsController {
     summary: 'Registrar grupo de clase',
   })
   @ApiOkResponse({ type: DTO.ClassGroupResponseDto })
-  async create(@Body() dto: DTO.CreateClassGroupDto) {
+  async create(
+    @Body() dto: DTO.CreateClassGroupDto,
+  ): Promise<DTO.ClassGroupResponseDto> {
     return toDto(
       DTO.ClassGroupResponseDto,
       await this.classGroupsService.create(dto),
@@ -40,7 +42,7 @@ export class ClassGroupsController {
   async findAll(
     @Query() query: DTO.FindAllClaasGroupsDto,
     @GetUser() user: ICurrentUser,
-  ) {
+  ): Promise<DTO.PaginatedClassGroupResponseDto> {
     const result = await this.classGroupsService.findAll(query, user);
     return toPaginatedDto(DTO.ClassGroupResponseDto, result);
   }
@@ -55,7 +57,7 @@ export class ClassGroupsController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DTO.UpdateClassGroupDto,
-  ) {
+  ): Promise<DTO.UpdateClassGroupDto> {
     return toDto(
       DTO.UpdateClassGroupDto,
       await this.classGroupsService.update(id, dto),
@@ -69,7 +71,9 @@ export class ClassGroupsController {
       'Permite obtener una lista con la minimia informacion de los grupos a los cuales se puede transferir un estudiante de un grupo especifico ',
   })
   @ApiOkResponse({ type: DTO.ClassGroupOption })
-  async findTransferOptions(@Param('id', ParseUUIDPipe) id: string) {
+  async findTransferOptions(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DTO.ClassGroupOption> {
     return toDto(
       DTO.ClassGroupOption,
       await this.classGroupsService.findTransferOptions(id),
@@ -82,7 +86,9 @@ export class ClassGroupsController {
     description: 'Obtiene el detalle de un grupo de clase por id',
   })
   @ApiOkResponse({ type: DTO.ClassGroupResponseDto })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DTO.ClassGroupResponseDto> {
     return toDto(
       DTO.ClassGroupResponseDto,
       await this.classGroupsService.findOne(id),

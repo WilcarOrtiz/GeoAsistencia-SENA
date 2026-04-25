@@ -14,7 +14,6 @@ import { AttendancesModule } from '../attendances/attendances.module';
   imports: [
     TypeOrmModule.forFeature([ClassSessions]),
     ClassDaysModule,
-
     ClassGroupsModule,
     EnrollmentModule,
     AttendancesModule,

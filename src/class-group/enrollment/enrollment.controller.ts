@@ -10,6 +10,7 @@ import {
   Res,
   InternalServerErrorException,
   Get,
+  Patch,
 } from '@nestjs/common';
 import { EnrollmentService } from './service/enrollment.service';
 import {
@@ -34,9 +35,19 @@ export class EnrollmentController {
     private readonly enrollmentBulkService: EnrollmentBulkService,
   ) {}
 
+  @Patch('remove')
+  @ApiOperation({ summary: 'Dar de baja a alumnos de un grupo de clase' })
+  async cancellationStudent(@Body() dto: dto.removeEnrollmentDto) {
+    console.log(dto.toGroupId, dto.students);
+    return await this.enrollmentService.cancelEnrollments(
+      dto.toGroupId,
+      dto.students,
+    );
+  }
+
   @Post('move')
-  @ApiOperation({ summary: 'Mover alumnos de grupo de clase a otro' })
-  async moveStudent(@Body() dto: dto.MoveEnrollmentDto) {
+  @ApiOperation({ summary: 'Mover alumnos de un grupo de clase a otro' })
+  async mmoveStudent(@Body() dto: dto.MoveEnrollmentDto) {
     return await this.enrollmentService.moveStudents(
       dto.students,
       dto.fromGroupId,

@@ -110,6 +110,36 @@ export class AttendancesService {
     );
   }
 
+  async findMyAttendancesInGroup(groupId: string, studentId: string) {
+    const attendances = await this.attendanceRepo.find({
+      where: {
+        student: { auth_id: studentId },
+        classSession: { classGroup: { id: groupId } },
+      },
+      relations: ['classSession'],
+      order: { classSession: { created_at: 'DESC' } },
+    });
+
+    const total = attendances.length;
+    const present = attendances.filter(
+      (a) => a.status === AttendanceStatus.PRESENT,
+    ).length;
+
+    return {
+      group_id: groupId,
+      total_sessions: total,
+      total_present: present,
+      attendance_rate: total > 0 ? Math.round((present / total) * 100) : 0,
+      sessions: attendances.map((a) => ({
+        session_id: a.classSession.id,
+        class_topic: a.classSession.class_topic,
+        date: a.classSession.created_at,
+        status: a.status,
+        check_in_time: a.check_in_time ?? null,
+      })),
+    };
+  }
+
   async removeSeed(manager: EntityManager): Promise<void> {
     const repo = manager.getRepository(Attendance);
     await repo.createQueryBuilder().delete().execute();

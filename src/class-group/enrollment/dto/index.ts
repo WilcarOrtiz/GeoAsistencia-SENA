@@ -1,3 +1,4 @@
+export { removeEnrollmentDto } from './move-enrollment.dto';
 export { BulkEnrollmentRowDto } from './bulk-create-user.dto';
 export {
   EnrollmentResponseDto,

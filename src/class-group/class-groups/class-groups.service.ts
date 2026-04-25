@@ -303,7 +303,6 @@ export class ClassGroupsService {
     });
 
     if (!group) throw new NotFoundException('Grupo de clase no encontrado');
-
     const hasSessions = group.classSessions && group.classSessions.length > 0;
 
     if (code && code !== group.code) {
