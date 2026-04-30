@@ -30,7 +30,7 @@ export class ClassSessionsController {
     return toDto(SessionAttendanceSummaryDto, result);
   }
 
-  @Get(':id/attendances ')
+  @Get(':id/attendances')
   @ApiOperation({
     summary: 'Listar las asistencias de una sesion',
   })
@@ -39,6 +39,17 @@ export class ClassSessionsController {
   ): Promise<SessionAttendanceDetailDto> {
     const result = await this.classSessionsService.findAttendancesBySession(id);
     return toDto(SessionAttendanceDetailDto, result);
+  }
+
+  @Get('/group/:id/active')
+  @ApiOperation({
+    summary: 'Obtener sesión activa de un grupo',
+  })
+  async findActiveSession(@Param('id', ParseUUIDPipe) id: string) {
+    const session =
+      await this.classSessionsService.findActiveSessionByGroup(id);
+
+    return session;
   }
 
   @Post()

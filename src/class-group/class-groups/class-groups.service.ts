@@ -189,7 +189,6 @@ export class ClassGroupsService {
     const repo = manager.getRepository(ClassGroup);
     await repo.createQueryBuilder().delete().execute();
   }
-
   async findAll(options: FindAllClaasGroupsDto, currentUser: ICurrentUser) {
     const { limit = 10, page = 1, semester, subject, term } = options;
     const offset = (page - 1) * limit;
@@ -204,6 +203,8 @@ export class ClassGroupsService {
       (r) => r.name === ValidRole.STUDENT,
     );
 
+    const applyPagination = isAdmin && !isTeacher && !isStudent;
+
     if (isTeacher && !isAdmin) {
       qb.andWhere('teacher.auth_id = :teacherId', {
         teacherId: currentUser.authId,
@@ -213,17 +214,22 @@ export class ClassGroupsService {
     }
 
     if (isStudent && !isAdmin) {
-      qb.innerJoin(
-        'group.enrollments',
-        'myEnrollment',
-        'myEnrollment.student_id = :studentId AND myEnrollment.status = :enrollStatus',
-        {
-          studentId: currentUser.authId,
-          enrollStatus: EnrollmentStatus.ACTIVE,
-        },
-      )
-        .andWhere('group.is_active = true')
-        .andWhere('semester.state = :state', { state: StateSemester.ACTIVE });
+      qb.andWhere('group.is_active = true')
+        .andWhere('semester.state = :state', { state: StateSemester.ACTIVE })
+        .andWhere((qb2) => {
+          const sub = qb2
+            .subQuery()
+            .select('e.class_group_id')
+            .from('ENROLLMENTS', 'e')
+            .where('e.student_id = :studentId', {
+              studentId: currentUser.authId,
+            })
+            .andWhere('e.status = :enrollStatus', {
+              enrollStatus: EnrollmentStatus.ACTIVE,
+            })
+            .getQuery();
+          return `group.id IN ${sub}`;
+        });
     }
 
     if (semester) {
@@ -255,15 +261,19 @@ export class ClassGroupsService {
       });
     }
 
-    qb.orderBy('group.created_at', 'DESC').take(limit).skip(offset);
+    qb.orderBy('group.created_at', 'DESC');
+
+    if (applyPagination) {
+      qb.take(limit).skip(offset);
+    }
 
     const [data, total] = await qb.getManyAndCount();
 
     return {
       data: data.map((group) => this.mapGroup(group)),
       total,
-      limit,
-      page,
+      limit: applyPagination ? limit : total,
+      page: applyPagination ? page : 1,
     };
   }
 

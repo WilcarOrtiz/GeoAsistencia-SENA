@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,6 +24,8 @@ import { UserProfileService } from './user-profile.service';
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
+import { Student } from 'src/users/student/entities/student.entity';
+import { Teacher } from 'src/users/teacher/entities/teacher.entity';
 
 @Injectable()
 export class UserService {
@@ -231,7 +234,16 @@ export class UserService {
     return { message: 'Usuario eliminados (DB + Auth)' };
   }
 
-  async getUserProfile(currentUser: ICurrentUser): Promise<UserMeResponseDto> {
+  async getUserProfile(
+    currentUser: ICurrentUser,
+    deviceId?: string,
+  ): Promise<UserMeResponseDto> {
+    console.log('identificador:', deviceId);
+
+    if (deviceId) {
+      await this.syncDeviceId(currentUser.authId, deviceId);
+    }
+
     const navigation = await this.menuService.getMenuTreeByPermissions(
       currentUser.permissions,
     );
@@ -289,6 +301,45 @@ export class UserService {
     }
 
     return resolved;
+  }
+
+  private async syncDeviceId(authId: string, deviceId: string): Promise<void> {
+    const manager = this.userRepo.manager;
+
+    const user = await this.userRepo.findOne({
+      where: { auth_id: authId },
+      relations: ['student', 'teacher'],
+    });
+
+    if (!user) return;
+
+    if (user.student?.is_active) {
+      await this.syncProfile(manager.getRepository(Student), authId, deviceId);
+    }
+
+    if (user.teacher?.is_active) {
+      await this.syncProfile(manager.getRepository(Teacher), authId, deviceId);
+    }
+  }
+
+  private async syncProfile(
+    repo: Repository<Student | Teacher>,
+    authId: string,
+    deviceId: string,
+  ): Promise<void> {
+    const profile = await repo.findOneBy({ auth_id: authId });
+    if (!profile) return;
+
+    if (profile.uuid_phone === null || profile.uuid_phone === undefined) {
+      // Primera vez → guardar
+      await repo.update({ auth_id: authId }, { uuid_phone: deviceId });
+    } else if (profile.uuid_phone !== deviceId) {
+      // Teléfono diferente → rechazar
+      throw new ForbiddenException(
+        'Este usuario ya tiene un dispositivo registrado. Contacta al administrador.',
+      );
+    }
+    // mismo uuid → no hacer nada
   }
 
   async isUserActiveByEmail(email: string): Promise<boolean> {

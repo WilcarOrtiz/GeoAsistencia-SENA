@@ -68,6 +68,19 @@ export class ClassSessionsService {
     return classSession;
   }
 
+  async findActiveSessionByGroup(groupId: string) {
+    const session = await this.classSessionRepo.findOne({
+      where: {
+        classGroup: { id: groupId },
+        can_mark_attendance: true,
+      },
+      select: ['code_class_session'],
+      order: { created_at: 'DESC' },
+    });
+
+    return session?.code_class_session ?? null;
+  }
+
   async closeSession(id: string): Promise<ClassSessions> {
     const session = await this.classSessionRepo.preload({
       id,

@@ -14,6 +14,7 @@ import {
   HttpStatus,
   Res,
   InternalServerErrorException,
+  Headers,
 } from '@nestjs/common';
 import { UserService } from './service/user.service';
 import {
@@ -152,8 +153,11 @@ export class UserController {
   `,
   })
   @ApiOkResponse({ type: DTO.UserMeResponseDto })
-  async getProfile(@GetUser() user: ICurrentUser) {
-    return await this.userService.getUserProfile(user);
+  async getProfile(
+    @GetUser() user: ICurrentUser,
+    @Headers('x-device-id') deviceId?: string,
+  ) {
+    return await this.userService.getUserProfile(user, deviceId);
   }
 
   @Get(':id')
