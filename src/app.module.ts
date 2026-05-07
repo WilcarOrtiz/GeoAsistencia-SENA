@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClassGroupModule } from './class-group/class-group.module';
 import { UsersModule } from './users/users.module';
 import { AcademicModule } from './academic/academic.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AcademicModule } from './academic/academic.module';
     AuthModule,
     ClassGroupModule,
     UsersModule,
+    DashboardModule,
   ],
   providers: [],
 })

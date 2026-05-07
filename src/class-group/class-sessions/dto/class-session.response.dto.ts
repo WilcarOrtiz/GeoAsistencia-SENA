@@ -34,3 +34,13 @@ export class SessionAttendanceSummaryDto {
   @Expose()
   total_present!: number;
 }
+
+export class CreateSessionResponseDto {
+  @ApiProperty({ example: 'uuid' })
+  @Expose()
+  id!: string;
+
+  @ApiProperty({ example: 'uuid' })
+  @Expose()
+  code_class_session!: string;
+}

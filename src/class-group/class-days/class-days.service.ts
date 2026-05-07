@@ -67,6 +67,7 @@ export class ClassDaysService {
       },
     });
 
+    console.log('horarop', schedule);
     if (!schedule) {
       throw new BadRequestException(
         `No hay clase este día ${getWeekDayLabel(dayOfWeek)}`,
@@ -82,6 +83,7 @@ export class ClassDaysService {
       );
     }
 
+    console.log('paso la validcione de la hora');
     return currentTime;
   }
 

@@ -10,7 +10,10 @@ import {
 import { ClassSessionsService } from './class-sessions.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { SessionAttendanceSummaryDto } from './dto/class-session.response.dto';
+import {
+  CreateSessionResponseDto,
+  SessionAttendanceSummaryDto,
+} from './dto/class-session.response.dto';
 import { toDto } from 'src/common/utils/dto-mapper.util';
 import { SessionAttendanceDetailDto } from '../attendances/dto/attendances-detail-by-session.dto';
 
@@ -58,9 +61,11 @@ export class ClassSessionsController {
     description:
       'Crear un registro de Sesion de clase, para iniciar un llamado lista, todos los alumnos tendran el estado AUSENTE',
   })
+  @ApiOkResponse({ type: CreateSessionResponseDto })
   async openSession(@Body() dto: CreateClassSessionDto) {
+    console.log('🔥 RAW BODY:', dto);
     const session = await this.classSessionsService.createSession(dto);
-    return session;
+    return toDto(CreateSessionResponseDto, session);
   }
 
   @Patch(':id/close')

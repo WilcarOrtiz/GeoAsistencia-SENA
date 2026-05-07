@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
   IsUUID,
   Length,
   Max,
@@ -15,17 +17,18 @@ export class CreateClassSessionDto {
   @IsUUID('4', { message: 'El id del grupo debe ser un UUID válido' })
   group_id!: string;
 
-  @ApiProperty({ example: 'Primer semestre académico 2025' })
-  @IsOptional({ message: 'El tema de sesion NO es obligatorio' })
-  @Length(3, 30, {
-    message: 'El tema de la clase debe tener entre 3 y 30 caracteres',
-  })
+  @IsOptional()
+  @IsString()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  @Transform(({ value }) => (value === null ? undefined : value))
+  @Length(3, 30)
   class_topic?: string;
 
   @ApiProperty({
     description: 'Latitud del docente (Ubicacion GPS)',
     example: 10.451718,
   })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @Min(-90)
   @Max(90)
@@ -36,6 +39,7 @@ export class CreateClassSessionDto {
     example: -73.274411,
   })
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   @Min(-180)
   @Max(180)
   longitude!: number;
