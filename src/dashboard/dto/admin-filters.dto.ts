@@ -16,4 +16,8 @@ export class AdminFilterDto {
   @IsOptional()
   @IsUUID()
   subjectId?: string;
+
+  @ApiProperty({ example: 20 })
+  @IsOptional()
+  limit?: number;
 }
