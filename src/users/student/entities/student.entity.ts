@@ -14,21 +14,18 @@ import { Enrollment } from 'src/class-group/enrollment/entities/enrollment.entit
 @Entity('STUDENTS')
 export class Student {
   @PrimaryColumn('uuid')
-  auth_id: string;
+  auth_id!: string;
 
   @OneToOne(() => User, (user) => user.student, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'auth_id' })
-  user: User;
-
-  @Column({ type: 'uuid', unique: true, nullable: true })
-  uuid_phone: string;
+  user!: User;
 
   @Column({ default: true, nullable: false })
-  is_active: boolean;
+  is_active: boolean = false;
 
   @OneToMany(() => Attendance, (attendance) => attendance.student)
-  attendances: Attendance[];
+  attendances!: Attendance[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
-  enrollments: Enrollment[];
+  enrollments!: Enrollment[];
 }

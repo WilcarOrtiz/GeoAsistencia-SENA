@@ -44,6 +44,13 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
+  @Column({
+    type: 'uuid',
+    unique: true,
+    nullable: true,
+  })
+  uuid_phone!: string | null;
+
   @ManyToMany(() => Role, (role) => role.users, {
     onDelete: 'RESTRICT',
   })

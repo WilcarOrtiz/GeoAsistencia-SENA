@@ -1,3 +1,5 @@
+export { ResetDevicesDto } from './reset-device.dto';
+
 export { BulkCreateUsersDto, BulkUserRowDto } from './bulk-create-user.dto';
 export { FindAllUsersDto } from './find-all-users.dto';
 export { UpdateRolesUserDto } from './update-roles-user.dto';

@@ -46,6 +46,18 @@ export class UserController {
     private readonly userBulkService: UserBulkService,
   ) {}
 
+  @Patch('reset-devices')
+  @ApiOperation({
+    summary: 'Resetear dispositivos registrados',
+  })
+  @ApiOkResponse({
+    description: 'UUIDs eliminados correctamente',
+  })
+  async resetDevices(@Body() dto: DTO.ResetDevicesDto) {
+    console.log('entro a restablecer');
+    return this.userService.resetDevices(dto.userIds);
+  }
+
   @PublicAccess()
   @Get('is-active')
   @ApiOperation({

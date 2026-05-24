@@ -117,7 +117,6 @@ export class DashboardController {
 
   // ── Estudiantes con más ausencias (tabla) ────────────────────
   @Get('teacher/students-absences')
-  @Get('admin/subjects-ranking')
   @ApiOperation({
     summary: 'Estudiantes con más ausencias (tabla)',
     description: `
@@ -134,7 +133,6 @@ export class DashboardController {
   }
 
   @Get('admin/students-absences')
-  @Get('admin/subjects-ranking')
   @ApiOperation({
     summary: 'Estudiantes con más ausencias (tabla)',
     description: `

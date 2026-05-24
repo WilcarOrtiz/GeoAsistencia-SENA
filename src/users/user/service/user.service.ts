@@ -3,9 +3,10 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolesService } from '../../../access-control-module/roles/roles.service';
 import { AuthService } from 'src/auth/auth.service';
@@ -24,8 +25,7 @@ import { UserProfileService } from './user-profile.service';
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
-import { Student } from 'src/users/student/entities/student.entity';
-import { Teacher } from 'src/users/teacher/entities/teacher.entity';
+import { Console } from 'console';
 
 @Injectable()
 export class UserService {
@@ -238,8 +238,6 @@ export class UserService {
     currentUser: ICurrentUser,
     deviceId?: string,
   ): Promise<UserMeResponseDto> {
-    console.log('identificador:', deviceId);
-
     if (deviceId) {
       await this.syncDeviceId(currentUser.authId, deviceId);
     }
@@ -267,7 +265,10 @@ export class UserService {
       relations: ['roles', 'roles.permissions', 'student', 'teacher'],
     });
 
-    const rolesValidos = user!.getValidRoles();
+    if (!user)
+      throw new UnauthorizedException('Usuario inactivo o no encontrado');
+
+    const rolesValidos = user.getValidRoles();
     const { names, ids } = this.rolesService.getUniquePermissions(rolesValidos);
 
     return {
@@ -304,42 +305,31 @@ export class UserService {
   }
 
   private async syncDeviceId(authId: string, deviceId: string): Promise<void> {
-    const manager = this.userRepo.manager;
-
     const user = await this.userRepo.findOne({
       where: { auth_id: authId },
-      relations: ['student', 'teacher'],
+      relations: ['student', 'teacher', 'roles'],
     });
 
     if (!user) return;
 
-    if (user.student?.is_active) {
-      await this.syncProfile(manager.getRepository(Student), authId, deviceId);
+    const requiresDeviceValidation =
+      user.student?.is_active || user.teacher?.is_active;
+
+    if (!requiresDeviceValidation) {
+      return;
     }
 
-    if (user.teacher?.is_active) {
-      await this.syncProfile(manager.getRepository(Teacher), authId, deviceId);
+    if (!user.uuid_phone) {
+      await this.userRepo.update({ auth_id: authId }, { uuid_phone: deviceId });
+
+      return;
     }
-  }
 
-  private async syncProfile(
-    repo: Repository<Student | Teacher>,
-    authId: string,
-    deviceId: string,
-  ): Promise<void> {
-    const profile = await repo.findOneBy({ auth_id: authId });
-    if (!profile) return;
-
-    if (profile.uuid_phone === null || profile.uuid_phone === undefined) {
-      // Primera vez → guardar
-      await repo.update({ auth_id: authId }, { uuid_phone: deviceId });
-    } else if (profile.uuid_phone !== deviceId) {
-      // Teléfono diferente → rechazar
+    if (user.uuid_phone !== deviceId) {
       throw new ForbiddenException(
-        'Este usuario ya tiene un dispositivo registrado. Contacta al administrador.',
+        'Debes iniciar sesión desde el dispositivo registrado inicialmente.',
       );
     }
-    // mismo uuid → no hacer nada
   }
 
   async isUserActiveByEmail(email: string): Promise<boolean> {
@@ -350,5 +340,32 @@ export class UserService {
 
     if (!user || !user.is_active) return false;
     return true;
+  }
+
+  async resetDevices(userIds: string[]) {
+    console.log('entrando.....');
+    const users = await this.userRepo.find({
+      where: {
+        auth_id: In(userIds),
+      },
+    });
+
+    if (!users.length) {
+      throw new NotFoundException('Usuarios no encontrados');
+    }
+
+    await this.userRepo.update(
+      {
+        auth_id: In(userIds),
+      },
+      {
+        uuid_phone: null,
+      },
+    );
+
+    return {
+      message: 'Dispositivos restablecidos correctamente',
+      updated: users.length,
+    };
   }
 }

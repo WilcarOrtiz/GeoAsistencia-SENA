@@ -12,18 +12,15 @@ import { ClassGroup } from 'src/class-group/class-groups/entities/class-group.en
 @Entity('TEACHERS')
 export class Teacher {
   @PrimaryColumn('uuid')
-  auth_id: string;
+  auth_id!: string;
 
   @OneToOne(() => User, (user) => user.teacher, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'auth_id' })
-  user: User;
-
-  @Column({ type: 'uuid', unique: true, nullable: true })
-  uuid_phone: string;
+  user!: User;
 
   @Column({ default: true, nullable: false })
-  is_active: boolean;
+  is_active!: boolean;
 
   @OneToMany(() => ClassGroup, (group) => group.teacher)
-  classGroups: ClassGroup[];
+  classGroups!: ClassGroup[];
 }
