@@ -63,7 +63,6 @@ export class ClassSessionsController {
   })
   @ApiOkResponse({ type: CreateSessionResponseDto })
   async openSession(@Body() dto: CreateClassSessionDto) {
-    console.log('🔥 RAW BODY:', dto);
     const session = await this.classSessionsService.createSession(dto);
     return toDto(CreateSessionResponseDto, session);
   }

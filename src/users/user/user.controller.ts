@@ -54,7 +54,6 @@ export class UserController {
     description: 'UUIDs eliminados correctamente',
   })
   async resetDevices(@Body() dto: DTO.ResetDevicesDto) {
-    console.log('entro a restablecer');
     return this.userService.resetDevices(dto.userIds);
   }
 

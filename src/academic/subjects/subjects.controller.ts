@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
@@ -120,10 +119,10 @@ export class SubjectsController {
         'Content-Length': buffer.length,
       });
       return res.status(HttpStatus.OK).send(buffer);
-    } catch (error) {
+    } catch (error: unknown) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Error al generar el archivo',
-        error,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }

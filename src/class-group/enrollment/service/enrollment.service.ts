@@ -130,14 +130,12 @@ export class EnrollmentService {
     groupId: string,
     studentIds: string[],
   ): Promise<{ message: string }> {
-    console.log('Entro al proceso ');
-    console.log({ groupId, studentIds });
     const group = await this.classGroupsService.findActiveGroup(groupId);
 
     const existingIds = await this.getActiveStudentIdsByGroup(group.id);
 
     const idsToCancel = studentIds.filter((id) => existingIds.has(id));
-    console.log('info que llega: ', groupId, studentIds);
+
     if (idsToCancel.length === 0) {
       throw new BadRequestException(
         'Ninguno de los estudiantes está matriculado en este grupo',

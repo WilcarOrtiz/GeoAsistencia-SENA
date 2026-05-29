@@ -38,7 +38,6 @@ export class EnrollmentController {
   @Patch('remove')
   @ApiOperation({ summary: 'Dar de baja a alumnos de un grupo de clase' })
   async cancellationStudent(@Body() dto: dto.removeEnrollmentDto) {
-    console.log(dto.toGroupId, dto.students);
     return await this.enrollmentService.cancelEnrollments(
       dto.toGroupId,
       dto.students,

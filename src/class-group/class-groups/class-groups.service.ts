@@ -183,7 +183,6 @@ export class ClassGroupsService {
         'El grupo de clase no existe o no se encuentra activo',
       );
 
-    console.log('entro a la busqueeda del gurpo ');
     return classgroup;
   }
 

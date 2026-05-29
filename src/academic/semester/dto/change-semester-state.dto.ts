@@ -6,7 +6,7 @@ export class ChangeSemesterStateDto {
   @ApiProperty({
     enum: StateSemester,
     enumName: 'StateSemester',
-    description: 'Estado actual del semestre',
+    description: 'Nuevo estado del semestre',
     example: StateSemester.ACTIVE,
   })
   @IsEnum(StateSemester)

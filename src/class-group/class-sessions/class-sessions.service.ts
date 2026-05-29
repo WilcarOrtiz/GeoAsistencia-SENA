@@ -30,7 +30,7 @@ export class ClassSessionsService {
   ): Promise<ClassSessions> {
     const { group_id, class_topic, latitude, longitude } =
       createClassSessionDto;
-    console.log('🔥 STEP 1');
+
     const grupo = await this.classGroupsService.findActiveGroup(group_id);
 
     if (!grupo.teacher) {
@@ -38,7 +38,7 @@ export class ClassSessionsService {
         'El grupo no tiene un docente asignado para crear una sesión',
       );
     }
-    console.log('🔥 STEP 2');
+
     const attendance_opened_at =
       await this.classDaysService.validateDayClassInSession(grupo.id);
 
@@ -64,7 +64,7 @@ export class ClassSessionsService {
         studentsActive,
       );
     }
-    console.log('🔥 STEP 3');
+
     return classSession;
   }
 
@@ -78,7 +78,7 @@ export class ClassSessionsService {
       .getOne();
 
     if (!session) return null;
-    console.log('Sesion del bakcens', session.id, session.code_class_session);
+
     return {
       sessionId: session.id,
       codeClassSession: session.code_class_session,

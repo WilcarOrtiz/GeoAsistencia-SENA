@@ -33,7 +33,6 @@ export class AttendancesController {
     @Param('groupId', ParseUUIDPipe) groupId: string,
     @GetUser() user: ICurrentUser,
   ): Promise<MyAttendancesResponseDto> {
-    console.log('usuario: ', user);
     const result = await this.attendancesService.findMyAttendancesInGroup(
       groupId,
       user.authId,

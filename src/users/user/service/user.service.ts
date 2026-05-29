@@ -25,7 +25,6 @@ import { UserProfileService } from './user-profile.service';
 import { Role } from 'src/access-control-module/roles/entities/role.entity';
 import { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
-import { Console } from 'console';
 
 @Injectable()
 export class UserService {
@@ -55,17 +54,6 @@ export class UserService {
         'roles.id',
         'roles.name',
       ]);
-  }
-
-  private activeUserWithPermissionsQuery(authId: string) {
-    return this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'role')
-      .leftJoinAndSelect('role.permissions', 'permission')
-      .leftJoinAndSelect('user.student', 'student', 'student.is_active = true')
-      .leftJoinAndSelect('user.teacher', 'teacher', 'teacher.is_active = true')
-      .where('user.auth_id = :authId', { authId })
-      .andWhere('user.is_active = true');
   }
 
   private async validateUniqueUserId(ID: string, excludeAuthId?: string) {
@@ -343,7 +331,6 @@ export class UserService {
   }
 
   async resetDevices(userIds: string[]) {
-    console.log('entrando.....');
     const users = await this.userRepo.find({
       where: {
         auth_id: In(userIds),
