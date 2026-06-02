@@ -18,6 +18,7 @@ import { toDto } from 'src/common/utils/dto-mapper.util';
 export class AttendancesController {
   constructor(private readonly attendancesService: AttendancesService) {}
 
+  //TODO: MOVIL
   @Patch()
   @ApiOperation({
     summary: 'Registrar MI ASITENCIA',
@@ -27,6 +28,7 @@ export class AttendancesController {
     return attendance;
   }
 
+  //TODO: MOVIL
   @Get('group/:groupId/my-history')
   @ApiOperation({ summary: 'Mis asistencias como estudiante en un grupo ' })
   async findMine(

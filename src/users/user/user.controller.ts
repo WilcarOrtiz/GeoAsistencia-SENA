@@ -38,6 +38,7 @@ import { UserBulkService } from './service/user-bulk.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import express from 'express';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('user')
 export class UserController {
@@ -47,6 +48,8 @@ export class UserController {
   ) {}
 
   @Patch('reset-devices')
+  @RequiredPermissions(PERMISSIONS.RECUPERAR_PASSWORD)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Resetear dispositivos registrados',
   })
@@ -72,8 +75,9 @@ export class UserController {
     return { isActive };
   }
 
-  @PublicAccess()
   @Post()
+  @RequiredPermissions(PERMISSIONS.CREAR_USUARIO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Registrar usuario',
     description:
@@ -88,6 +92,8 @@ export class UserController {
   }
 
   @Patch(':id/roles')
+  @RequiredPermissions(PERMISSIONS.EDITAR_USUARIO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Actualizar roles de un usuario',
     description: 'Reemplaza completamente los roles asignados a un usuario.',
@@ -104,6 +110,8 @@ export class UserController {
   }
 
   @Patch(':id')
+  @RequiredPermissions(PERMISSIONS.EDITAR_USUARIO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Actualizar información básica del usuario',
     description:
@@ -121,6 +129,8 @@ export class UserController {
   }
 
   @Patch(':id/deactivate')
+  @RequiredPermissions(PERMISSIONS.DESACTIVAR_USUARIO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Desactivar usuario',
     description:
@@ -136,6 +146,8 @@ export class UserController {
   }
 
   @Patch(':id/activate')
+  @RequiredPermissions(PERMISSIONS.ACTIVAR_USUARIO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Activar usuario',
     description:
@@ -172,6 +184,8 @@ export class UserController {
   }
 
   @Get(':id')
+  @RequiredPermissions(PERMISSIONS.VER_USUARIOS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Obtener un usuario',
   })
@@ -184,7 +198,7 @@ export class UserController {
   }
 
   @Get()
-  @RequiredPermissions('ver_asignaturas')
+  @RequiredPermissions(PERMISSIONS.VER_USUARIOS)
   @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar usuarios',
@@ -204,6 +218,8 @@ export class UserController {
   }
 
   @PublicAccess()
+  @RequiredPermissions(PERMISSIONS.DESCARGAR_PLANTILLA_USUARIOS)
+  @UseGuards(PermissionsGuard)
   @Get('bulk/template')
   async downloadTemplate(@Res() res: express.Response) {
     try {
@@ -223,6 +239,8 @@ export class UserController {
   }
 
   @Post('bulk/import')
+  @RequiredPermissions(PERMISSIONS.IMPORTAR_USUARIOS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Importar usuarios masivamente desde un archivo Excel',
     description:

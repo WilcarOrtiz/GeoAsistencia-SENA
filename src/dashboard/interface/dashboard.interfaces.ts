@@ -25,14 +25,14 @@ export interface DashboardOverview {
   grupo_critico_tasa: number | null;
 }
 
-// ── Distribución dona ─────────────────────────────────────────
+// Distribución dona
 export interface AttendanceDistribution {
   status: 'PRESENT' | 'ABSENT' | 'LATE';
   total: number;
   porcentaje: number;
 }
 
-// ── Ranking materias (solo admin) ─────────────────────────────
+// Ranking
 export interface SubjectRanking {
   subject_id: string;
   subject_name: string;
@@ -40,7 +40,14 @@ export interface SubjectRanking {
   porcentaje_asistencia: number;
 }
 
-// ── Estudiantes con más ausencias ─────────────────────────────
+export interface TeacherGroupRanking {
+  id: string;
+  name: string;
+  subject_name: string;
+  porcentaje_asistencia: number;
+}
+
+// Estudiantes con más ausencias
 export interface TeacherStudentAbsence {
   student_id: string;
   student_name: string;

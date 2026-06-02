@@ -8,17 +8,23 @@ import {
   ParseUUIDPipe,
   Query,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { SemesterService } from './semester.service';
 import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import * as DTO from './dto';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
+import { PermissionsGuard } from 'src/common/guard';
+import { RequiredPermissions } from 'src/common/decorators';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('semester')
 export class SemesterController {
   constructor(private readonly semesterService: SemesterService) {}
 
   @Post()
+  @RequiredPermissions(PERMISSIONS.CREAR_SEMESTRE)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Registrar semestre academico',
   })
@@ -33,6 +39,8 @@ export class SemesterController {
   }
 
   @Get()
+  @RequiredPermissions(PERMISSIONS.VER_SEMESTRES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar semestres',
   })
@@ -47,6 +55,8 @@ export class SemesterController {
   }
 
   @Get('/all')
+  @RequiredPermissions(PERMISSIONS.VER_SEMESTRES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar semestres ',
     description: `
@@ -64,6 +74,8 @@ export class SemesterController {
   }
 
   @Patch(':id')
+  @RequiredPermissions(PERMISSIONS.EDITAR_SEMESTRE)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Actualizar semestre',
   })
@@ -79,6 +91,8 @@ export class SemesterController {
   }
 
   @Patch(':id/state')
+  @RequiredPermissions(PERMISSIONS.CAMBIAR_ESTADO_SEMESTRE)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({ summary: 'Cambiar estado del semestre' })
   @ApiBody({
     type: DTO.ChangeSemesterStateDto,
@@ -96,6 +110,8 @@ export class SemesterController {
   }
 
   @Delete(':id')
+  @RequiredPermissions(PERMISSIONS.ELIMINAR_SEMESTRE)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Eliminar semestre (logicamente)',
   })

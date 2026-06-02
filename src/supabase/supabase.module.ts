@@ -7,5 +7,3 @@ import { SupabaseAdminService } from './supabase-admin/supabase-admin.service';
   exports: [SupabaseAdminService],
 })
 export class SupabaseModule {}
-
-//TODO: Forzar restablecimiento de contraseña

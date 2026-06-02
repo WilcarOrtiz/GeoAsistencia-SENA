@@ -1,18 +1,20 @@
-// dashboard.controller.ts
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import type { ICurrentUser } from 'src/common/interface/current-user.interface';
-import { GetUser } from 'src/common/decorators';
+import { GetUser, RequiredPermissions } from 'src/common/decorators';
 import { AdminFilterDto } from './dto/admin-filters.dto';
 import { TeacherFilterDto } from './dto/teacher-filters.dto';
 import { ApiOperation } from '@nestjs/swagger';
+import { PermissionsGuard } from 'src/common/guard';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('dashboard')
+@UseGuards(PermissionsGuard)
+@RequiredPermissions(PERMISSIONS.VER_REPORTES)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  // ── Overview (cards) ────────────────────────────────────────
-
+  //TODO: Overview (cards)
   @Get('teacher/overview')
   @ApiOperation({
     summary: 'Overview (cards)',
@@ -45,8 +47,7 @@ export class DashboardController {
     return this.dashboardService.adminOverview(filters);
   }
 
-  // ── Asistencia por grupo (barras apiladas) ───────────────────
-
+  //TODO: Asistencia por grupo (barras apiladas)
   @Get('teacher/attendance')
   @ApiOperation({
     summary: 'Asistencia por grupo (barras apiladas)',
@@ -61,6 +62,8 @@ export class DashboardController {
   }
 
   @Get('admin/attendance')
+  @RequiredPermissions(PERMISSIONS.VER_REPORTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Asistencia por grupo (barras apiladas)',
     description: `
@@ -73,7 +76,7 @@ export class DashboardController {
     return this.dashboardService.adminAttendance(filters);
   }
 
-  // ── Distribución PRESENT/ABSENT/LATE (dona) ──────────────────
+  //TODO: Distribución PRESENT/ABSENT/LATE (dona)
   @Get('teacher/distribution')
   @ApiOperation({
     summary: 'Asistencia por grupo (barras apiladas)',
@@ -100,8 +103,7 @@ export class DashboardController {
     return this.dashboardService.adminDistribution(filters);
   }
 
-  // ── Ranking materias (barras horizontales, solo admin) ───────
-
+  //TODO: Ranking materias (barras horizontales)
   @Get('admin/subjects-ranking')
   @ApiOperation({
     summary: 'Ranking materias (barras horizontales, solo admin)',
@@ -115,7 +117,23 @@ export class DashboardController {
     return this.dashboardService.adminSubjectsRanking(filters);
   }
 
-  // ── Estudiantes con más ausencias (tabla) ────────────────────
+  @Get('teacher/groups-ranking')
+  @ApiOperation({
+    summary: 'Ranking de grupos del docente',
+    description: `
+  Retorna los grupos del docente ordenados de mayor a menor
+  porcentaje de asistencia promedio.
+  Por defecto top 10.
+  `,
+  })
+  teacherGroupsRanking(
+    @GetUser() user: ICurrentUser,
+    @Query() filters: TeacherFilterDto,
+  ) {
+    return this.dashboardService.teacherGroupsRanking(user.authId, filters);
+  }
+
+  //TODO: Estudiantes con más ausencias (tabla)
   @Get('teacher/students-absences')
   @ApiOperation({
     summary: 'Estudiantes con más ausencias (tabla)',

@@ -6,6 +6,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ClassSessionsService } from './class-sessions.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
@@ -16,12 +17,17 @@ import {
 } from './dto/class-session.response.dto';
 import { toDto } from 'src/common/utils/dto-mapper.util';
 import { SessionAttendanceDetailDto } from '../attendances/dto/attendances-detail-by-session.dto';
+import { RequiredPermissions } from 'src/common/decorators';
+import { PermissionsGuard } from 'src/common/guard';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('class-sessions')
 export class ClassSessionsController {
   constructor(private readonly classSessionsService: ClassSessionsService) {}
 
   @Get('/group/:id')
+  @RequiredPermissions(PERMISSIONS.VER_ESTUDIANTES_GRUPO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar las sesiones de un grupo de clase',
   })
@@ -33,6 +39,7 @@ export class ClassSessionsController {
     return toDto(SessionAttendanceSummaryDto, result);
   }
 
+  //TODO: MOVIL PERO TAMBIEN WEB
   @Get(':id/attendances')
   @ApiOperation({
     summary: 'Listar las asistencias de una sesion',
@@ -44,6 +51,7 @@ export class ClassSessionsController {
     return toDto(SessionAttendanceDetailDto, result);
   }
 
+  //TODO: MOVIL
   @Get('/group/:id/active')
   @ApiOperation({
     summary: 'Obtener sesión activa de un grupo',
@@ -55,6 +63,7 @@ export class ClassSessionsController {
     return session;
   }
 
+  //TODO: MOVIL
   @Post()
   @ApiOperation({
     summary: 'Iniciar llamado a lista',
@@ -67,6 +76,7 @@ export class ClassSessionsController {
     return toDto(CreateSessionResponseDto, session);
   }
 
+  //TODO: MOVIL
   @Patch(':id/close')
   @ApiOperation({
     summary: 'Detener llamado a lista',

@@ -1,10 +1,22 @@
-import { Controller, Get, Param, ParseUUIDPipe, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { RoleResponseDto } from './dto/roles-response.dto';
 import { toDto } from 'src/common/utils/dto-mapper.util';
+import { RequiredPermissions } from 'src/common/decorators';
+import { PermissionsGuard } from 'src/common/guard';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('role')
+@UseGuards(PermissionsGuard)
+@RequiredPermissions(PERMISSIONS.MANAGE_ROLE)
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}
 

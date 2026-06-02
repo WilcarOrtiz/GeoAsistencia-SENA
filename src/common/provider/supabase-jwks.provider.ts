@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { createRemoteJWKSet, type JWTVerifyGetKey } from 'jose';
 
 export const JOSE_JWKS_PROVIDER = 'JOSE_JWKS_PROVIDER';
@@ -9,7 +8,7 @@ export const JwksProvider = {
     const jwksUrl = process.env.SUPABASE_JWKS_URL;
 
     if (!jwksUrl) {
-      throw new Error(' SUPABASE_JWKS_URL no definida');
+      throw new Error('SUPABASE_JWKS_URL no definida');
     }
 
     return createRemoteJWKSet(new URL(jwksUrl)) as JWTVerifyGetKey;

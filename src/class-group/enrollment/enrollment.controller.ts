@@ -11,6 +11,7 @@ import {
   InternalServerErrorException,
   Get,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { EnrollmentService } from './service/enrollment.service';
 import {
@@ -25,8 +26,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import express from 'express';
 import { toDto } from 'src/common/utils/dto-mapper.util';
-import { PublicAccess } from 'src/common/decorators';
+import { RequiredPermissions } from 'src/common/decorators';
 import * as dto from './dto/index';
+import { PERMISSIONS } from 'src/common/constants/permisos';
+import { PermissionsGuard } from 'src/common/guard';
 
 @Controller('enrollment')
 export class EnrollmentController {
@@ -36,6 +39,8 @@ export class EnrollmentController {
   ) {}
 
   @Patch('remove')
+  @RequiredPermissions(PERMISSIONS.RETIRAR_ESTUDIANTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({ summary: 'Dar de baja a alumnos de un grupo de clase' })
   async cancellationStudent(@Body() dto: dto.removeEnrollmentDto) {
     return await this.enrollmentService.cancelEnrollments(
@@ -45,6 +50,8 @@ export class EnrollmentController {
   }
 
   @Post('move')
+  @RequiredPermissions(PERMISSIONS.TRANSFERIR_ESTUDIANTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({ summary: 'Mover alumnos de un grupo de clase a otro' })
   async mmoveStudent(@Body() dto: dto.MoveEnrollmentDto) {
     return await this.enrollmentService.moveStudents(
@@ -55,6 +62,8 @@ export class EnrollmentController {
   }
 
   @Get('bulk/template')
+  @RequiredPermissions(PERMISSIONS.MATRICULAR_ESTUDIANTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Descargar plantilla Excel para matricular estudiantes',
   })
@@ -76,6 +85,8 @@ export class EnrollmentController {
   }
 
   @Post('bulk/import/:groupId')
+  @RequiredPermissions(PERMISSIONS.MATRICULAR_ESTUDIANTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Matricular estudiantes masivamente desde Excel',
   })
@@ -117,8 +128,9 @@ export class EnrollmentController {
     return this.enrollmentBulkService.bulkEnrollment(groupId, file.buffer);
   }
 
-  @PublicAccess()
   @Get(':groupId')
+  @RequiredPermissions(PERMISSIONS.VER_ESTUDIANTES_GRUPO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar estudiantes matriculados en el grupo',
   })

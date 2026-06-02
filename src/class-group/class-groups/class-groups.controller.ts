@@ -7,19 +7,24 @@ import {
   Param,
   Patch,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ClassGroupsService } from './class-groups.service';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { toDto, toPaginatedDto } from 'src/common/utils/dto-mapper.util';
 import * as DTO from './dto';
 import type { ICurrentUser } from 'src/common/interface/current-user.interface';
-import { GetUser } from 'src/common/decorators';
+import { GetUser, RequiredPermissions } from 'src/common/decorators';
+import { PermissionsGuard } from 'src/common/guard';
+import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('class-groups')
 export class ClassGroupsController {
   constructor(private readonly classGroupsService: ClassGroupsService) {}
 
   @Post()
+  @RequiredPermissions(PERMISSIONS.CREAR_GRUPO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Registrar grupo de clase',
   })
@@ -33,6 +38,8 @@ export class ClassGroupsController {
     );
   }
 
+  //TODO: MOVIL
+  //Aquii puedo poner el permiso de ver grupo
   @Get()
   @ApiOperation({
     summary: 'Listar grupos de clase',
@@ -48,6 +55,8 @@ export class ClassGroupsController {
   }
 
   @Patch(':id')
+  @RequiredPermissions(PERMISSIONS.EDITAR_GRUPO)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Actualizar Grupo de clase',
     description:
@@ -65,6 +74,8 @@ export class ClassGroupsController {
   }
 
   @Get(':id/transfer-options')
+  @RequiredPermissions(PERMISSIONS.TRANSFERIR_ESTUDIANTES)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Grupos para transferencia',
     description:

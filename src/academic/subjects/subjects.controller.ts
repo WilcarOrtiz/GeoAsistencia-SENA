@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   Res,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { SubjectsService } from './service/subjects.service';
 import { ApiConsumes, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
@@ -28,6 +29,9 @@ import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
 import express from 'express';
+import { PERMISSIONS } from 'src/common/constants/permisos';
+import { RequiredPermissions } from 'src/common/decorators';
+import { PermissionsGuard } from 'src/common/guard';
 
 @Controller('subjects')
 export class SubjectsController {
@@ -37,6 +41,8 @@ export class SubjectsController {
   ) {}
 
   @Post()
+  @RequiredPermissions(PERMISSIONS.CREAR_ASIGNATURA)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Registrar asignatura',
   })
@@ -51,6 +57,8 @@ export class SubjectsController {
   }
 
   @Post('bulk/import')
+  @RequiredPermissions(PERMISSIONS.IMPORTAR_ASIGNATURAS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Importar asignaturas masivamente desde un archivo Excel',
     description:
@@ -90,6 +98,8 @@ export class SubjectsController {
   }
 
   @Get()
+  @RequiredPermissions(PERMISSIONS.VER_ASIGNATURAS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Listar asignaturas',
     description: 'Obtiene las asignaturas del sistema con informaicon paginada',
@@ -105,6 +115,8 @@ export class SubjectsController {
   }
 
   @Get('bulk/template')
+  @RequiredPermissions(PERMISSIONS.DESCARGAR_PLANTILLA_ASIGNATURAS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Descargar plantilla Excel para carga masiva de asignaturas',
   })
@@ -142,6 +154,8 @@ export class SubjectsController {
   }
 
   @Get(':term')
+  @RequiredPermissions(PERMISSIONS.VER_ASIGNATURAS)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'obtener asignatura',
     description:
@@ -156,6 +170,8 @@ export class SubjectsController {
   }
 
   @Patch(':id')
+  @RequiredPermissions(PERMISSIONS.EDITAR_ASIGNATURA)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Actualizar asigantura',
   })
@@ -171,6 +187,8 @@ export class SubjectsController {
   }
 
   @Delete(':id')
+  @RequiredPermissions(PERMISSIONS.ELIMINAR_ASIGNATURA)
+  @UseGuards(PermissionsGuard)
   @ApiOperation({
     summary: 'Eliminar asignatura (Logicamente)',
   })

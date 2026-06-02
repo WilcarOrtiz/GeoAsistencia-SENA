@@ -19,8 +19,6 @@ export const GetUser = createParamDecorator(
         'User not found in request (AuthGuard absent)',
       );
 
-    // 4. Si pides una propiedad específica, TS verificará que exista en ICurrentUser
-    // Gracias a 'keyof ICurrentUser', si escribes @GetUser('id_erróneo') fallará en compilación.
     return data ? user[data] : user;
   },
 );

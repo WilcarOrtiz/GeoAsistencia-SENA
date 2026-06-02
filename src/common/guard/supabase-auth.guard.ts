@@ -43,19 +43,21 @@ export class SupabaseAuthGuard implements CanActivate {
       });
 
       if (!payload.sub)
-        throw new UnauthorizedException('Malformed token: missing identifier');
+        throw new UnauthorizedException(
+          'Token con formato incorrecto: identificador faltante',
+        );
 
       const result = await this.userService.validateActiveUserByAuthId(
         payload.sub,
       );
-      if (!result) throw new UnauthorizedException('Unauthorized user');
+      if (!result) throw new UnauthorizedException('Usuario no autorizado');
 
       const { user, roles, processedPermissions, processedPermissionIds } =
         result;
 
       request.user = {
-        authId: user!.auth_id,
-        ID_user: user!.ID_user,
+        authId: user.auth_id,
+        ID_user: user.ID_user,
         email: (payload.email as string) || '',
         roles: roles.map((r) => ({
           id: r.id,
@@ -63,15 +65,15 @@ export class SupabaseAuthGuard implements CanActivate {
         })),
         permissions: processedPermissions,
         permissionIds: processedPermissionIds,
-        fullName: user!.fullName,
-        is_active: user!.is_active,
+        fullName: user.fullName,
+        is_active: user.is_active,
       };
 
       return true;
     } catch (error) {
       throw error instanceof UnauthorizedException
         ? error
-        : new UnauthorizedException('Invalid token');
+        : new UnauthorizedException('Token invalido');
     }
   }
 }

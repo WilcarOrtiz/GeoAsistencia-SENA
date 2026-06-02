@@ -27,7 +27,8 @@ export class PermissionsGuard implements CanActivate {
       .switchToHttp()
       .getRequest<{ user?: ICurrentUser }>();
     const user = request.user;
-    if (!user) throw new ForbiddenException('User not found in request');
+    if (!user)
+      throw new ForbiddenException('El usuario no se encuentra en la request');
 
     const { roles = [], permissions = [] } = user;
     const elevatedRoles = new Set([ValidRole.SUPER_ADMIN, ValidRole.ADMIN]);
@@ -40,7 +41,7 @@ export class PermissionsGuard implements CanActivate {
 
     if (missingPermissions.length)
       throw new ForbiddenException(
-        `Missing permissions: [${missingPermissions.join(', ')}]`,
+        `Permisos faltantes: [${missingPermissions.join(', ')}]`,
       );
 
     return true;

@@ -27,7 +27,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
-    // ERRORES DE BASE DE DATOS
+    //TODO: ERRORES DE BASE DE DATOS
     if (exception instanceof QueryFailedError) {
       const dbError = exception.driverError as {
         code?: string;
@@ -45,7 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       this.logger.error('DB Error', dbError);
     }
 
-    // ERRORES HTTP DE NEST
+    //TODO: ERRORES HTTP DE NEST
     else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse() as string | NestErrorResponse;
@@ -60,7 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     }
 
-    // ERRORES DESCONOCIDOS
+    // TODO: ERRORES DESCONOCIDOS
     else {
       const error = exception as Error;
       this.logger.error(`Uncontrolled error: ${error.message}`, error.stack);

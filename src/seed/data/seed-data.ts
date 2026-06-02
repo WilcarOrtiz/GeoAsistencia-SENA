@@ -8,19 +8,19 @@ type IMenuSeed = IMenuSystemCreate & { parent_name?: string };
 interface SeedData {
   permissions: IPermissionSystemCreate[];
   roles: IRoleSystemCreate[];
-  menus: IMenuSeed[]; // Cambiado a plural y arreglo
+  menus: IMenuSeed[];
 }
 export const initialData: SeedData = {
   permissions: [
     // =========================
-    // 👥 USERS
+    //  USERS
     // =========================
     { name: 'ver_usuarios', description: 'Ver lista de usuarios' },
-    { name: 'crear_usuario', description: 'Crear usuarios' },
+    { name: 'crear:usuario', description: 'Crear usuarios' },
     { name: 'editar_usuario', description: 'Editar usuarios' },
     { name: 'activar_usuario', description: 'Activar usuarios' },
     { name: 'desactivar_usuario', description: 'Desactivar usuarios' },
-    { name: 'importar_usuarios', description: 'Importar usuarios desde Excel' },
+    { name: 'importar:usuarios', description: 'Importar usuarios desde Excel' },
     {
       name: 'recuperar_password',
       description: 'Enviar recuperación de contraseña',
@@ -31,7 +31,7 @@ export const initialData: SeedData = {
     },
 
     // =========================
-    // 📚 SUBJECTS
+    //  SUBJECTS
     // =========================
     { name: 'ver_asignaturas', description: 'Ver asignaturas' },
     { name: 'crear_asignatura', description: 'Crear asignatura' },
@@ -44,7 +44,7 @@ export const initialData: SeedData = {
     },
 
     // =========================
-    // 📅 SEMESTERS
+    //  SEMESTERS
     // =========================
     {
       name: 'planeacion',
@@ -60,7 +60,7 @@ export const initialData: SeedData = {
     { name: 'eliminar_semestre', description: 'Eliminar semestre' },
 
     // =========================
-    // 🎓 CLASS GROUPS
+    //  CLASS GROUPS
     // =========================
     { name: 'ver_grupos', description: 'Ver grupos de clase' },
     { name: 'crear_grupo', description: 'Crear grupo de clase' },
@@ -83,14 +83,14 @@ export const initialData: SeedData = {
     },
 
     // =========================
-    // 🔐 ROLES & PERMISSIONS
+    //  ROLES & PERMISSIONS
     // =========================
     { name: 'manage:role', description: 'Asignar permisos a roles' },
 
     // =========================
-    // 📊 REPORTS
+    //  REPORTS
     // =========================
-    { name: 'ver_reportes', description: 'Ver métricas y reportes' },
+    { name: 'ver:reportes', description: 'Ver métricas y reportes' },
     { name: 'exportar_reportes', description: 'Exportar datos (PDF/Excel)' },
   ],
 
@@ -101,11 +101,11 @@ export const initialData: SeedData = {
       permissions: [
         'planeacion',
         'ver_usuarios',
-        'crear_usuario',
+        'crear:usuario',
         'editar_usuario',
         'activar_usuario',
         'desactivar_usuario',
-        'importar_usuarios',
+        'importar:usuarios',
         'recuperar_password',
         'descargar_plantilla_usuarios',
 
@@ -135,7 +135,7 @@ export const initialData: SeedData = {
 
         'manage:role',
 
-        'ver_reportes',
+        'ver:reportes',
         'exportar_reportes',
       ],
     },
@@ -156,7 +156,7 @@ export const initialData: SeedData = {
 
         'gestionar_horarios',
 
-        'ver_reportes',
+        'ver:reportes',
       ],
     },
 
@@ -175,7 +175,7 @@ export const initialData: SeedData = {
       name: 'Dashboard',
       route: '/dashboard',
       icon: 'LayoutDashboard',
-      permission_name: 'ver_reportes',
+      permission_name: 'ver:reportes',
       order_index: 1,
     },
     // =========================
@@ -234,3 +234,7 @@ export const initialData: SeedData = {
     },
   ],
 };
+
+/*
+1. poner los can 
+*/

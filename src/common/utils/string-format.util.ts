@@ -3,7 +3,7 @@ export const toTitleCase = (text: string): string => {
     .trim()
     .toLowerCase()
     .split(' ')
-    .filter((word) => word.length > 0) // Evita espacios dobles
+    .filter((word) => word.length > 0)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
