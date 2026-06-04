@@ -16,7 +16,6 @@
 </p>
 
 ---
-
 ## Descripción
 
 GeoAsistencia es una plataforma desarrollada para digitalizar y automatizar el proceso de control de asistencia
@@ -25,11 +24,9 @@ y que los estudiantes registren su asistencia únicamente cuando se encuentran d
 Además del control de asistencia, la plataforma incorpora herramientas de gestión académica, administración de 
 usuarios, control de acceso basado en permisos y módulos de analítica para la toma de decisiones.
 
-
 <p align="center">
   <img src="./doc/interaccion_entre_componentes.png" alt="Arquitectura Backend" width="1000">
 </p>
-
 ---
 
 ## 🔐 Características principales
