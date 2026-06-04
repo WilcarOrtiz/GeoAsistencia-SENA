@@ -251,7 +251,6 @@ http://localhost:3001/api/doc
 | `PATCH` | `/api/class-groups/:id` | Actualizar grupo |
 | `GET` | `/api/class-groups/:id/transfer-options` | Obtener grupos válidos para transferencia |
 
----
 
 ### Horarios y días de clase
 
