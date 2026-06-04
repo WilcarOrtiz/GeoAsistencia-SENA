@@ -181,7 +181,7 @@ GET http://localhost:3001/api/seed
 docker build -t geoasistencia-api .
 
 # Correr contenedor
-docker run -d \ -p 3001:3001 \ --env-file .env \ --name geoasistencia-api \ geoasistencia-api
+docker run -d -p 3001:3001 --env-file .env --name geoasistencia-api geoasistencia-api
 ```
 
 
