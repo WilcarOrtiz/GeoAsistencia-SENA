@@ -32,9 +32,9 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 
 ---
 
-##  Características principales
+## 🔐 Características principales
 
-### 🔐 Seguridad y autenticación
+### Seguridad y autenticación
 
 - Autenticación mediante **Supabase Auth**
 - Validación de **JWT** usando **JWKS**
@@ -42,7 +42,7 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 - Endpoints públicos mediante decoradores personalizados
 - Sistema de **Roles y Permisos (RBAC)**
 
-### 📍 Control de asistencia por geolocalización
+### Control de asistencia por geolocalización
 
 - Registro de asistencia mediante coordenadas GPS
 - Validación de radio configurable
@@ -50,7 +50,7 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 - Historial de asistencias por estudiante
 - Prevención básica de registros fuera del aula
 
-### 👨‍🏫 Gestión académica
+### Gestión académica
 
 - Administración de docentes
 - Administración de estudiantes
@@ -60,7 +60,7 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 - Gestión de matrículas
 - Reasignación de estudiantes entre grupos
 
-### 📊 Dashboard y analítica
+### Dashboard y analítica
 
 #### Docentes
 
@@ -79,20 +79,19 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 - Métricas filtradas por asignatura
 - Reportes consolidados de asistencia
 
-### 📥 Importación masiva
+### Importación masiva
 
 - Usuarios desde Excel
 - Matrículas desde Excel
 - Validación fila por fila
 - Reporte de errores durante la importación
 
-### 📚 Documentación
+### Documentación
 
 - Swagger / OpenAPI
 - DTOs documentados
 - Validaciones centralizadas
 - Respuestas estandarizadas
-
 
 
 ## 🏗️ Arquitectura
@@ -202,7 +201,7 @@ http://localhost:3001/api/doc
 
 ## 📋 Endpoints principales
 
-### 👤 Usuarios
+###  Usuarios
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -220,7 +219,7 @@ http://localhost:3001/api/doc
 | `GET` | `/api/user/is-active` | Verificar si un usuario está activo |
 
 
-### 🎓 Semestres
+###  Semestres
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -232,7 +231,7 @@ http://localhost:3001/api/doc
 | `DELETE` | `/api/semester/:id` | Eliminar semestre lógicamente |
 
 
-### 📚 Asignaturas
+### Asignaturas
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -246,7 +245,7 @@ http://localhost:3001/api/doc
 | `GET` | `/api/subjects/bulk/template` | Descargar plantilla Excel |
 
 
-### 👨‍🏫 Grupos de clase
+###  Grupos de clase
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -258,7 +257,7 @@ http://localhost:3001/api/doc
 
 ---
 
-### 📅 Horarios y días de clase
+### Horarios y días de clase
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -268,7 +267,7 @@ http://localhost:3001/api/doc
 
 
 
-### 📝 Sesiones de clase
+### Sesiones de clase
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -280,7 +279,7 @@ http://localhost:3001/api/doc
 
 
 
-### 📍 Asistencias
+### Asistencias
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -288,7 +287,7 @@ http://localhost:3001/api/doc
 | `GET` | `/api/attendances/group/:groupId/my-history` | Historial de asistencias del estudiante |
 
 
-### 🎯 Matrículas
+### Matrículas
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -299,7 +298,7 @@ http://localhost:3001/api/doc
 | `GET` | `/api/enrollment/bulk/template` | Descargar plantilla Excel |
 
 
-### 🔐 Roles y permisos
+### Roles y permisos
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -309,7 +308,7 @@ http://localhost:3001/api/doc
 | `GET` | `/api/permissions/matrix` | Obtener matriz completa de permisos |
 
 
-### 📊 Dashboard y reportes
+###  Dashboard y reportes
 
 | Método | Endpoint | Descripción |
 |----------|----------|-------------|
@@ -325,6 +324,6 @@ http://localhost:3001/api/doc
 | `GET` | `/api/dashboard/admin/students-absences` | Estudiantes con más ausencias |
 
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto es de uso privado y fue desarrollado como proyecto académico para el SENA.
