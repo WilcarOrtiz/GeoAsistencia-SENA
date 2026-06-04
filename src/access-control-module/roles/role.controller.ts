@@ -15,8 +15,8 @@ import { PermissionsGuard } from 'src/common/guard';
 import { PERMISSIONS } from 'src/common/constants/permisos';
 
 @Controller('role')
-@UseGuards(PermissionsGuard)
 @RequiredPermissions(PERMISSIONS.MANAGE_ROLE)
+@UseGuards(PermissionsGuard)
 export class RoleController {
   constructor(private readonly roleService: RolesService) {}
 

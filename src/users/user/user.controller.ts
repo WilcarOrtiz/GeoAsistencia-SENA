@@ -47,19 +47,6 @@ export class UserController {
     private readonly userBulkService: UserBulkService,
   ) {}
 
-  @Patch('reset-devices')
-  @RequiredPermissions(PERMISSIONS.RECUPERAR_PASSWORD)
-  @UseGuards(PermissionsGuard)
-  @ApiOperation({
-    summary: 'Resetear dispositivos registrados',
-  })
-  @ApiOkResponse({
-    description: 'UUIDs eliminados correctamente',
-  })
-  async resetDevices(@Body() dto: DTO.ResetDevicesDto) {
-    return this.userService.resetDevices(dto.userIds);
-  }
-
   @PublicAccess()
   @Get('is-active')
   @ApiOperation({
@@ -73,6 +60,19 @@ export class UserController {
   async isActiveUser(@Query('email') email: string) {
     const isActive = await this.userService.isUserActiveByEmail(email);
     return { isActive };
+  }
+
+  @Patch('reset-devices')
+  @RequiredPermissions(PERMISSIONS.RECUPERAR_PASSWORD)
+  @UseGuards(PermissionsGuard)
+  @ApiOperation({
+    summary: 'Resetear dispositivos registrados',
+  })
+  @ApiOkResponse({
+    description: 'UUIDs eliminados correctamente',
+  })
+  async resetDevices(@Body() dto: DTO.ResetDevicesDto) {
+    return this.userService.resetDevices(dto.userIds);
   }
 
   @Post()
