@@ -91,7 +91,6 @@ usuarios, control de acceso basado en permisos y módulos de analítica para la 
 
 
 ## 🏗️ Arquitectura
-
 El proyecto sigue las convenciones y buenas prácticas de NestJS con una separación clara de responsabilidades:
 
 ```
