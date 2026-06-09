@@ -24,7 +24,5 @@ Este seed facilita el despliegue del sistema en entornos de desarrollo y pruebas
 evitando la necesidad de registro manual de información.
   `,
   })
-  excutedSEED() {
-    return this.seedService.runSeed();
-  }
+  excutedSEED() {}
 }
