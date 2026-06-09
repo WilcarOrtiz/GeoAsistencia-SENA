@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -16,143 +17,234 @@ import {
   TeacherGroupRanking,
   TeacherStudentAbsence,
 } from './interface/dashboard.interfaces';
+import {
+  CACHE_SERVICE,
+  CacheModules,
+  CacheTTLTimes,
+} from 'src/common/cache/cache.constants';
+import type { ICacheService } from 'src/common/cache/cache.interface';
+import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
 
 @Injectable()
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
-  constructor(private readonly supabaseAdmin: SupabaseAdminService) {}
+
+  constructor(
+    private readonly supabaseAdmin: SupabaseAdminService,
+    @Inject(CACHE_SERVICE) private readonly cache: ICacheService,
+  ) {}
+
+  // ─── Helpers privados ────────────────────────────────────────────────────
+  private async rpc<T>(
+    fnName: string,
+    params: Record<string, unknown>,
+    errorContext: string,
+  ): Promise<T[]> {
+    const response = await this.supabaseAdmin.client.rpc(fnName, params);
+    if (response.error) {
+      this.logger.error(errorContext, response.error);
+      throw new InternalServerErrorException(response.error.message);
+    }
+    return (response.data as T[] | null) ?? [];
+  }
+
+  private key(action: string, params?: Record<string, unknown>): string {
+    return CacheKeyFactory.build(CacheModules.DASHBOARD, action, params);
+  }
+
+  // ─── Teacher endpoints ───────────────────────────────────────────────────
+
+  async teacherOverview(teacherId: string): Promise<DashboardOverview> {
+    const cacheKey = this.key('teacher-overview', { teacherId });
+    const cached = await this.cache.get<DashboardOverview>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<DashboardOverview>(
+      'teacher_overview',
+      { p_teacher_id: teacherId },
+      'teacherOverview',
+    );
+
+    if (!data.length) {
+      throw new InternalServerErrorException(
+        'No se encontró información del dashboard',
+      );
+    }
+
+    await this.cache.set(cacheKey, data[0], CacheTTLTimes.DASHBOARD);
+    return data[0];
+  }
 
   async teacherAttendance(
     teacherId: string,
   ): Promise<TeacherGroupAttendance[]> {
-    const response = await this.supabaseAdmin.client.rpc(
+    const cacheKey = this.key('teacher-attendance', { teacherId });
+    const cached = await this.cache.get<TeacherGroupAttendance[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<TeacherGroupAttendance>(
       'teacher_attendance_by_group',
       { p_teacher_id: teacherId },
+      'teacherAttendance',
     );
 
-    const data = response.data as TeacherGroupAttendance[] | null;
-    const error = response.error;
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
+  }
 
-    if (error) {
-      this.logger.error('teacherAttendance', error);
-      throw new InternalServerErrorException(error.message);
+  async teacherDistribution(
+    teacherId: string,
+  ): Promise<AttendanceDistribution[]> {
+    const cacheKey = this.key('teacher-distribution', { teacherId });
+    const cached = await this.cache.get<AttendanceDistribution[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<AttendanceDistribution>(
+      'teacher_attendance_distribution',
+      { p_teacher_id: teacherId },
+      'teacherDistribution',
+    );
+
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
+  }
+
+  async teacherGroupsRanking(
+    teacherId: string,
+    filters: TeacherFilterDto,
+  ): Promise<TeacherGroupRanking[]> {
+    const cacheKey = this.key('teacher-groups-ranking', {
+      teacherId,
+      limit: filters.limit ?? 10,
+    });
+    const cached = await this.cache.get<TeacherGroupRanking[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<TeacherGroupRanking>(
+      'teacher_groups_ranking',
+      { p_teacher_id: teacherId, p_limit: filters.limit ?? 10 },
+      'teacherGroupsRanking',
+    );
+
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
+  }
+
+  async teacherStudentsAbsences(
+    teacherId: string,
+    filters: TeacherFilterDto,
+  ): Promise<TeacherStudentAbsence[]> {
+    const cacheKey = this.key('teacher-students-absences', {
+      teacherId,
+      limit: filters.limit ?? 10,
+    });
+    const cached = await this.cache.get<TeacherStudentAbsence[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<TeacherStudentAbsence>(
+      'teacher_students_absences',
+      { p_teacher_id: teacherId, p_limit: filters.limit ?? 10 },
+      'teacherStudentsAbsences',
+    );
+
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
+  }
+
+  // ─── Admin endpoints ─────────────────────────────────────────────────────
+
+  async adminOverview(filters: AdminFilterDto): Promise<DashboardOverview> {
+    const cacheKey = this.key('admin-overview', {
+      semesterId: filters.semesterId,
+      teacherId: filters.teacherId,
+      subjectId: filters.subjectId,
+    });
+    const cached = await this.cache.get<DashboardOverview>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<DashboardOverview>(
+      'admin_overview',
+      {
+        p_semester_id: filters.semesterId ?? null,
+        p_teacher_id: filters.teacherId ?? null,
+        p_subject_id: filters.subjectId ?? null,
+      },
+      'adminOverview',
+    );
+
+    if (!data.length) {
+      throw new InternalServerErrorException(
+        'No se encontró información del dashboard',
+      );
     }
 
-    return data ?? [];
+    await this.cache.set(cacheKey, data[0], CacheTTLTimes.DASHBOARD);
+    return data[0];
   }
 
   async adminAttendance(
     filters: AdminFilterDto,
   ): Promise<AdminGroupAttendance[]> {
-    const response = await this.supabaseAdmin.client.rpc(
+    const cacheKey = this.key('admin-attendance', {
+      semesterId: filters.semesterId,
+      teacherId: filters.teacherId,
+      subjectId: filters.subjectId,
+    });
+    const cached = await this.cache.get<AdminGroupAttendance[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<AdminGroupAttendance>(
       'admin_attendance_by_group',
       {
         p_semester_id: filters.semesterId ?? null,
         p_teacher_id: filters.teacherId ?? null,
         p_subject_id: filters.subjectId ?? null,
       },
+      'adminAttendance',
     );
 
-    const data = response.data as AdminGroupAttendance[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('adminAttendance', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
-  }
-
-  async teacherOverview(teacherId: string): Promise<DashboardOverview> {
-    const response = await this.supabaseAdmin.client.rpc('teacher_overview', {
-      p_teacher_id: teacherId,
-    });
-
-    const data = response.data as DashboardOverview[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('teacherOverview', error);
-      throw new InternalServerErrorException(error.message);
-    }
-
-    if (!data?.length) {
-      throw new InternalServerErrorException(
-        'No se encontró información del dashboard',
-      );
-    }
-
-    return data[0];
-  }
-
-  async adminOverview(filters: AdminFilterDto): Promise<DashboardOverview> {
-    const response = await this.supabaseAdmin.client.rpc('admin_overview', {
-      p_semester_id: filters.semesterId ?? null,
-      p_teacher_id: filters.teacherId ?? null,
-      p_subject_id: filters.subjectId ?? null,
-    });
-
-    const data = response.data as DashboardOverview[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('adminOverview', error);
-      throw new InternalServerErrorException(error.message);
-    }
-
-    if (!data?.length) {
-      throw new InternalServerErrorException(
-        'No se encontró información del dashboard',
-      );
-    }
-
-    return data[0];
-  }
-
-  async teacherDistribution(
-    teacherId: string,
-  ): Promise<AttendanceDistribution[]> {
-    const response = await this.supabaseAdmin.client.rpc(
-      'teacher_attendance_distribution',
-      { p_teacher_id: teacherId },
-    );
-
-    const data = response.data as AttendanceDistribution[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('teacherDistribution', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
   }
 
   async adminDistribution(
     filters: AdminFilterDto,
   ): Promise<AttendanceDistribution[]> {
-    const response = await this.supabaseAdmin.client.rpc(
+    const cacheKey = this.key('admin-distribution', {
+      semesterId: filters.semesterId,
+      teacherId: filters.teacherId,
+      subjectId: filters.subjectId,
+    });
+    const cached = await this.cache.get<AttendanceDistribution[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<AttendanceDistribution>(
       'admin_attendance_distribution',
       {
         p_semester_id: filters.semesterId ?? null,
         p_teacher_id: filters.teacherId ?? null,
         p_subject_id: filters.subjectId ?? null,
       },
+      'adminDistribution',
     );
 
-    const data = response.data as AttendanceDistribution[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('adminDistribution', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
   }
 
   async adminSubjectsRanking(
     filters: AdminFilterDto,
   ): Promise<SubjectRanking[]> {
-    const response = await this.supabaseAdmin.client.rpc(
+    const cacheKey = this.key('admin-subjects-ranking', {
+      semesterId: filters.semesterId,
+      teacherId: filters.teacherId,
+      subjectId: filters.subjectId,
+      limit: filters.limit ?? 10,
+    });
+    const cached = await this.cache.get<SubjectRanking[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<SubjectRanking>(
       'admin_subjects_ranking',
       {
         p_semester_id: filters.semesterId ?? null,
@@ -160,65 +252,26 @@ export class DashboardService {
         p_subject_id: filters.subjectId ?? null,
         p_limit: filters.limit ?? 10,
       },
-    );
-    const data = response.data as SubjectRanking[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('adminSubjectsRanking', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
-  }
-
-  async teacherGroupsRanking(
-    teacherId: string,
-    filters: TeacherFilterDto,
-  ): Promise<TeacherGroupRanking[]> {
-    const response = await this.supabaseAdmin.client.rpc(
-      'teacher_groups_ranking',
-      {
-        p_teacher_id: teacherId,
-        p_limit: filters.limit ?? 10,
-      },
+      'adminSubjectsRanking',
     );
 
-    const data = response.data as TeacherGroupRanking[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('teacherGroupsRanking', error);
-      throw new InternalServerErrorException(error.message);
-    }
-
-    return data ?? [];
-  }
-
-  async teacherStudentsAbsences(
-    teacherId: string,
-    filters: TeacherFilterDto,
-  ): Promise<TeacherStudentAbsence[]> {
-    const response = await this.supabaseAdmin.client.rpc(
-      'teacher_students_absences',
-      {
-        p_teacher_id: teacherId,
-        p_limit: filters.limit ?? 10,
-      },
-    );
-    const data = response.data as TeacherStudentAbsence[] | null;
-    const error = response.error;
-
-    if (error) {
-      this.logger.error('teacherStudentsAbsences', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
   }
 
   async adminStudentsAbsences(
     filters: AdminFilterDto,
   ): Promise<AdminStudentAbsence[]> {
-    const response = await this.supabaseAdmin.client.rpc(
+    const cacheKey = this.key('admin-students-absences', {
+      semesterId: filters.semesterId,
+      teacherId: filters.teacherId,
+      subjectId: filters.subjectId,
+      limit: filters.limit ?? 10,
+    });
+    const cached = await this.cache.get<AdminStudentAbsence[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.rpc<AdminStudentAbsence>(
       'admin_students_absences',
       {
         p_semester_id: filters.semesterId ?? null,
@@ -226,15 +279,15 @@ export class DashboardService {
         p_subject_id: filters.subjectId ?? null,
         p_limit: filters.limit ?? 10,
       },
+      'adminStudentsAbsences',
     );
 
-    const data = response.data as AdminStudentAbsence[] | null;
-    const error = response.error;
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DASHBOARD);
+    return data;
+  }
 
-    if (error) {
-      this.logger.error('adminStudentsAbsences', error);
-      throw new InternalServerErrorException(error.message);
-    }
-    return data ?? [];
+  // ─── Invalidación ────────────────────────────────────────────────────────
+  async invalidateDashboard(): Promise<void> {
+    await this.cache.delByPrefix(CacheModules.DASHBOARD);
   }
 }

@@ -7,6 +7,7 @@ import { ClassDaysModule } from '../class-days/class-days.module';
 import { ClassGroupsModule } from '../class-groups/class-groups.module';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { AttendancesModule } from '../attendances/attendances.module';
+import { DashboardModule } from 'src/dashboard/dashboard.module';
 
 @Module({
   controllers: [ClassSessionsController],
@@ -17,6 +18,7 @@ import { AttendancesModule } from '../attendances/attendances.module';
     ClassGroupsModule,
     EnrollmentModule,
     AttendancesModule,
+    DashboardModule,
   ],
   exports: [TypeOrmModule, ClassSessionsService],
 })

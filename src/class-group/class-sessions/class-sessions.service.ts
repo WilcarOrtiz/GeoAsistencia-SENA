@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,14 @@ import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { EnrollmentService } from '../enrollment/service/enrollment.service';
 import { AttendancesService } from '../attendances/attendances.service';
 import { AttendanceStatus } from 'src/common/enums/attendance-status.enum';
+import type { ICacheService } from 'src/common/cache/cache.interface';
+import {
+  CACHE_SERVICE,
+  CacheModules,
+  CacheTTLTimes,
+} from 'src/common/cache/cache.constants';
+import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
+import { DashboardService } from '../../dashboard/dashboard.service';
 
 @Injectable()
 export class ClassSessionsService {
@@ -23,7 +32,19 @@ export class ClassSessionsService {
     private classGroupsService: ClassGroupsService,
     private enrollmentService: EnrollmentService,
     private attendancesService: AttendancesService,
+    private readonly dashboardService: DashboardService,
+
+    @Inject(CACHE_SERVICE)
+    private readonly cache: ICacheService,
   ) {}
+
+  private key(action: string, params?: Record<string, unknown>): string {
+    return CacheKeyFactory.build(CacheModules.CLASS_SESSIONS, action, params);
+  }
+
+  private async invalidateSessionsOfGroup(groupId: string): Promise<void> {
+    await this.cache.del(this.key('sessions-by-group', { groupId }));
+  }
 
   async createSession(
     createClassSessionDto: CreateClassSessionDto,
@@ -65,6 +86,11 @@ export class ClassSessionsService {
       );
     }
 
+    await Promise.all([
+      this.invalidateSessionsOfGroup(group_id),
+      this.classGroupsService.invalidateGroup(group_id),
+    ]);
+
     return classSession;
   }
 
@@ -95,10 +121,20 @@ export class ClassSessionsService {
     if (!session) {
       throw new NotFoundException('Sesión no encontrada');
     }
+
+    await Promise.all([
+      this.invalidateSessionsOfGroup(session.classGroup?.id ?? ''),
+      this.dashboardService.invalidateDashboard(),
+    ]);
+
     return await this.classSessionRepo.save(session);
   }
 
   async findSessionsByGroup(groupId: string) {
+    const cacheKey = this.key('sessions-by-group', { groupId });
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const sessions = await this.classSessionRepo
       .createQueryBuilder('session')
       .where('session.classGroup = :groupId', { groupId })
@@ -115,7 +151,7 @@ export class ClassSessionsService {
       .orderBy('session.created_at', 'DESC')
       .getMany();
 
-    return sessions.map(
+    const result = sessions.map(
       (s: {
         id: string;
         class_topic: string;
@@ -136,9 +172,16 @@ export class ClassSessionsService {
         total_present: s.total_present ?? 0,
       }),
     );
+
+    await this.cache.set(cacheKey, result, CacheTTLTimes.SESSIONS);
+    return result;
   }
 
   async findAttendancesBySession(sessionId: string) {
+    const cacheKey = this.key('attendances-by-session', { sessionId });
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const session = await this.classSessionRepo.findOne({
       where: { id: sessionId },
       relations: [
@@ -150,7 +193,7 @@ export class ClassSessionsService {
 
     if (!session) throw new NotFoundException('Sesión no encontrada');
 
-    return session.attendances.map((a) => ({
+    const result = session.attendances.map((a) => ({
       id: a.id,
       status: a.status,
       check_in_time: a.check_in_time ?? null,
@@ -166,6 +209,12 @@ export class ClassSessionsService {
           .join(' '),
       },
     }));
+
+    if (!session.can_mark_attendance) {
+      await this.cache.set(cacheKey, result, CacheTTLTimes.DETAIL);
+    }
+
+    return result;
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {

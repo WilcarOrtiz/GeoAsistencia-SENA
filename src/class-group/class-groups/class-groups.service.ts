@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,6 +18,14 @@ import { ClassGroupOption } from './dto';
 import { ICurrentUser } from 'src/common/interface/current-user.interface';
 import { ValidRole } from 'src/common/enums/valid-role.enum';
 import { EnrollmentStatus } from 'src/common/enums/enrollment-status.enum';
+import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
+import {
+  CACHE_SERVICE,
+  CacheModules,
+  CacheTTLTimes,
+} from 'src/common/cache/cache.constants';
+import type { ICacheService } from 'src/common/cache/cache.interface';
+import { PaginatedResponseDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class ClassGroupsService {
@@ -26,7 +35,21 @@ export class ClassGroupsService {
     private readonly semesterService: SemesterService,
     private readonly subjectService: SubjectsService,
     private readonly teacherService: TeacherService,
+    @Inject(CACHE_SERVICE)
+    private readonly cache: ICacheService,
   ) {}
+
+  private key(action: string, params?: Record<string, unknown>): string {
+    return CacheKeyFactory.build(CacheModules.CLASS_GROUPS, action, params);
+  }
+
+  async invalidateGroup(id?: string): Promise<void> {
+    await this.cache.delByPrefix(`${CacheModules.CLASS_GROUPS}:list`);
+    await this.cache.delByPrefix(`${CacheModules.CLASS_GROUPS}:transfer`);
+    if (id) {
+      await this.cache.del(this.key('findOne', { id }));
+    }
+  }
 
   private mapGroup(
     group: ClassGroup & {
@@ -125,22 +148,41 @@ export class ClassGroupsService {
     if (!currentGroup)
       throw new NotFoundException('Grupo de clase no encontrado');
 
-    const groups = await this.classGroupRepo.find({
-      where: {
-        subject: { id: currentGroup.subject.id },
-        semester: { id: currentGroup.semester.id },
-        is_active: true,
-      },
-      relations: ['subject', 'semester'],
-    });
+    const qb = this.classGroupRepo
+      .createQueryBuilder('group')
+      .leftJoin(
+        'group.enrollments',
+        'enrollment',
+        'enrollment.status = :status',
+        { status: EnrollmentStatus.ACTIVE },
+      )
+      .where('group.subject_id = :subjectId', {
+        subjectId: currentGroup.subject.id,
+      })
+      .andWhere('group.semester_id = :semesterId', {
+        semesterId: currentGroup.semester.id,
+      })
+      .andWhere('group.is_active = true')
+      .andWhere('group.id != :groupId', { groupId })
+      .groupBy('group.id')
+      .addGroupBy('group.name')
+      .addGroupBy('group.code')
+      .addGroupBy('group.max_students')
+      .having(
+        `
+      group.max_students IS NULL
+      OR COUNT(enrollment.id) < group.max_students
+    `,
+      )
+      .select(['group.id', 'group.name', 'group.code']);
 
-    return groups
-      .filter((g) => g.id !== groupId)
-      .map((g) => ({
-        id: g.id,
-        name: g.name,
-        code: g.code,
-      }));
+    const groups = await qb.getRawMany();
+
+    return groups.map((g) => ({
+      id: g.group_id,
+      name: g.group_name,
+      code: g.group_code,
+    }));
   }
 
   async create(createClassGroupDto: CreateClassGroupDto): Promise<ClassGroup> {
@@ -168,7 +210,7 @@ export class ClassGroupsService {
       name,
       academic_year: semester.academic_year,
     });
-
+    await this.invalidateGroup();
     return await this.classGroupRepo.save(classGroup);
   }
 
@@ -191,6 +233,16 @@ export class ClassGroupsService {
     await repo.createQueryBuilder().delete().execute();
   }
   async findAll(options: FindAllClaasGroupsDto, currentUser: ICurrentUser) {
+    const ttl = options.term ? CacheTTLTimes.SEARCH : CacheTTLTimes.LIST;
+
+    const key = this.key('list', {
+      ...options,
+      userId: currentUser.authId,
+    });
+
+    const cached = await this.cache.get<PaginatedResponseDto<any>>(key);
+    if (cached) return cached;
+
     const { limit = 10, page = 1, semester, subject, term } = options;
     const offset = (page - 1) * limit;
 
@@ -270,15 +322,22 @@ export class ClassGroupsService {
 
     const [data, total] = await qb.getManyAndCount();
 
-    return {
+    const information = {
       data: data.map((group) => this.mapGroup(group)),
       total,
       limit: applyPagination ? limit : total,
       page: applyPagination ? page : 1,
     };
+
+    await this.cache.set(key, information, ttl);
+    return information;
   }
 
   async findOne(id: string) {
+    const cacheKey = this.key('findOne', { id });
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const qb = this.baseListQuery();
     qb.andWhere('group.id = :id', { id });
     const group = await qb.getOne();
@@ -287,7 +346,9 @@ export class ClassGroupsService {
       throw new NotFoundException('Grupo no encontrado');
     }
 
-    return this.mapGroup(group);
+    const data = this.mapGroup(group);
+    await this.cache.set(cacheKey, data, CacheTTLTimes.DETAIL);
+    return data;
   }
 
   async findActiveGroupWithSubject(id: string): Promise<ClassGroup> {
@@ -338,7 +399,7 @@ export class ClassGroupsService {
 
     if (name) group.name = name;
     if (max_students !== undefined) group.max_students = max_students;
-
+    await this.invalidateGroup(id);
     return await this.classGroupRepo.save(group);
   }
 }

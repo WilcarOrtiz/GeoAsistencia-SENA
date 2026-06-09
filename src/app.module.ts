@@ -10,6 +10,7 @@ import { ClassGroupModule } from './class-group/class-group.module';
 import { UsersModule } from './users/users.module';
 import { AcademicModule } from './academic/academic.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CacheInfrastructureModule } from './common/cache/cache.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production',
     }),
+    CacheInfrastructureModule,
     CommonModule,
     SeedModule,
     AccessControlModuleModule,

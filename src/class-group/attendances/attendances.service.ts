@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,9 @@ import { Attendance } from './entities/attendance.entity';
 import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 import { AttendanceStatus } from 'src/common/enums/attendance-status.enum';
 import { ClassSessions } from '../class-sessions/entities/class-session.entity';
+import type { ICacheService } from 'src/common/cache/cache.interface';
+import { CACHE_SERVICE, CacheModules } from 'src/common/cache/cache.constants';
+import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
 
 @Injectable()
 export class AttendancesService {
@@ -18,7 +22,18 @@ export class AttendancesService {
 
     @InjectRepository(ClassSessions)
     private readonly classSessionRepo: Repository<ClassSessions>,
+
+    @Inject(CACHE_SERVICE)
+    private readonly cache: ICacheService,
   ) {}
+
+  private sessionDetailKey(sessionId: string): string {
+    return CacheKeyFactory.build(
+      CacheModules.CLASS_SESSIONS,
+      'attendances-by-session',
+      { sessionId },
+    );
+  }
 
   private calculateDistance(
     lat1: number,
@@ -98,6 +113,7 @@ export class AttendancesService {
       check_in_time: new Date().toTimeString().split(' ')[0],
     });
 
+    await this.cache.del(this.sessionDetailKey(session.id));
     return { message: 'Asistencia marcada correctamente' };
   }
 

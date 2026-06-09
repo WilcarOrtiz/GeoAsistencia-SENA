@@ -1,10 +1,17 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Enrollment } from '../entities/enrollment.entity';
 import { EntityManager, In, Repository } from 'typeorm';
 import { ClassGroupsService } from '../../class-groups/class-groups.service';
 import { EnrollmentStatus } from 'src/common/enums/enrollment-status.enum';
 import { EnrollmentResponseDto } from '../dto/enrollment-response.dto';
+import type { ICacheService } from 'src/common/cache/cache.interface';
+import {
+  CACHE_SERVICE,
+  CacheModules,
+  CacheTTLTimes,
+} from 'src/common/cache/cache.constants';
+import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
 
 @Injectable()
 export class EnrollmentService {
@@ -12,7 +19,21 @@ export class EnrollmentService {
     @InjectRepository(Enrollment)
     private readonly enrollmentRepo: Repository<Enrollment>,
     private readonly classGroupsService: ClassGroupsService,
+
+    @Inject(CACHE_SERVICE)
+    private readonly cache: ICacheService,
   ) {}
+
+  private key(action: string, params?: Record<string, unknown>): string {
+    return CacheKeyFactory.build(CacheModules.ENROLLMENT, action, params);
+  }
+
+  private async invalidateEnrollment(groupId: string): Promise<void> {
+    await Promise.all([
+      this.cache.del(this.key('students-with-attendance', { groupId })),
+      this.classGroupsService.invalidateGroup(groupId),
+    ]);
+  }
 
   async findStudentUuidByIdUser(idUser: string): Promise<string> {
     const result = await this.enrollmentRepo.manager
@@ -122,6 +143,7 @@ export class EnrollmentService {
     );
 
     await this.enrollmentRepo.save(enrollments);
+    await this.invalidateEnrollment(groupId);
 
     return { message: `${newIds.length} alumno(s) matriculados` };
   }
@@ -159,6 +181,8 @@ export class EnrollmentService {
         'Algunos estudiantes no pudieron ser cancelados',
       );
     }
+
+    await this.invalidateEnrollment(groupId);
 
     return {
       message: `${result.affected} matrícula(s) cancelada(s)`,
@@ -211,6 +235,13 @@ export class EnrollmentService {
 
       await manager.save(newEnrollments);
     });
+
+    console.log('entrooo');
+
+    await Promise.all([
+      this.invalidateEnrollment(fromGroupId),
+      this.invalidateEnrollment(toGroupId),
+    ]);
   }
 
   async findEnrollmentActive(class_group_id: string) {
@@ -228,6 +259,10 @@ export class EnrollmentService {
   async getStudentsWithAttendance(
     groupId: string,
   ): Promise<EnrollmentResponseDto[]> {
+    const cacheKey = this.key('students-with-attendance', { groupId });
+    const cached = await this.cache.get<EnrollmentResponseDto[]>(cacheKey);
+    if (cached) return cached;
+
     const qb = this.enrollmentRepo
       .createQueryBuilder('e')
       .innerJoin('e.student', 's')
@@ -295,13 +330,16 @@ export class EnrollmentService {
       attendance_percentage: string;
     }>();
 
-    return result.map((r) => ({
+    const mapped = result.map((r) => ({
       id: r.id,
       full_name: r.full_name,
       enrollment_status: r.enrollment_status,
       enrolled_at: r.enrolled_at,
       attendance_percentage: Number(r.attendance_percentage),
     }));
+
+    await this.cache.set(cacheKey, mapped, CacheTTLTimes.ENROLLMENT);
+    return mapped;
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {
