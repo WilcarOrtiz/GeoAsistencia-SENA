@@ -1,11 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { SeedService } from './seed.service';
-import { ApiOperation } from '@nestjs/swagger';
+//import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('seed')
 export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
+  /*
   @Get()
   @ApiOperation({
     summary:
@@ -24,5 +25,7 @@ Este seed facilita el despliegue del sistema en entornos de desarrollo y pruebas
 evitando la necesidad de registro manual de información.
   `,
   })
-  excutedSEED() {}
+  excutedSEED() {
+    return this.seedService.runSeed();
+  }*/
 }
