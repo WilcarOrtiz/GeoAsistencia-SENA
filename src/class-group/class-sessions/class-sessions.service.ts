@@ -22,6 +22,8 @@ import {
 } from 'src/common/cache/cache.constants';
 import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
 import { DashboardService } from '../../dashboard/dashboard.service';
+import { ClassGroup } from '../class-groups/entities/class-group.entity';
+import { Teacher } from 'src/users/teacher/entities/teacher.entity';
 
 @Injectable()
 export class ClassSessionsService {
@@ -65,15 +67,18 @@ export class ClassSessionsService {
 
     const code_class_session = uuidv4();
 
-    const classSession = await this.classSessionRepo.save({
+    // ✅ Usar create() para tipar correctamente la entidad
+    const newSession = this.classSessionRepo.create({
       class_topic,
-      classGroup: { id: grupo.id },
-      teacher: { auth_id: grupo.teacher.auth_id },
+      classGroup: { id: grupo.id } as ClassGroup,
+      teacher: { auth_id: grupo.teacher.auth_id } as Teacher,
       teacher_latitude: latitude,
       teacher_longitude: longitude,
-      attendance_opened_at,
+      attendance_opened_at: attendance_opened_at as unknown as string,
       code_class_session,
     });
+
+    const classSession = await this.classSessionRepo.save(newSession);
 
     const studentsActive = await this.enrollmentService.findEnrollmentActive(
       grupo.id,

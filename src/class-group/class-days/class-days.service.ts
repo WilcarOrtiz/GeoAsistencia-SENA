@@ -54,6 +54,50 @@ export class ClassDaysService {
   }
 
   async validateDayClassInSession(groupId: string) {
+    const now = new Date(
+      new Date().toLocaleString('en-US', {
+        timeZone: 'America/Bogota',
+      }),
+    );
+
+    const dayOfWeek = now.getDay() as WeekDay;
+
+    const schedule = await this.classDaysRepo.findOne({
+      where: {
+        classGroup: { id: groupId },
+        is_active: true,
+        day: dayOfWeek,
+      },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException(
+        `No hay clase este día ${getWeekDayLabel(dayOfWeek)}`,
+      );
+    }
+
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const start = toMinutes(schedule.start_time);
+    const end = toMinutes(schedule.end_time);
+
+    const isInSchedule = currentMinutes >= start && currentMinutes <= end;
+
+    if (!isInSchedule) {
+      throw new BadRequestException(
+        `Estas fuera del horario de clase: ${schedule.start_time} a ${schedule.end_time}`,
+      );
+    }
+
+    return true;
+  }
+
+  /* async validateDayClassInSession(groupId: string) {
     const now = new Date();
     const dayOfWeek = now.getDay() as WeekDay;
 
@@ -83,7 +127,7 @@ export class ClassDaysService {
     }
 
     return currentTime;
-  }
+  }*/
 
   async findByGroup(classGroupId: string): Promise<ClassDayResponseDto[]> {
     const days = await this.classDaysRepo.find({
