@@ -308,15 +308,22 @@ export class UserService {
     }
 
     if (!user.uuid_phone) {
+      const existingUser = await this.userRepo.findOne({
+        where: { uuid_phone: deviceId },
+      });
+
+      if (existingUser && existingUser.auth_id !== authId) {
+        throw new ForbiddenException(
+          'Este dispositivo ya está asociado a otro usuario.',
+        );
+      }
+
       await this.userRepo.update({ auth_id: authId }, { uuid_phone: deviceId });
 
       return;
     }
 
     if (user.uuid_phone !== deviceId) {
-      console.log('DISPOSITIVO INVALIDO');
-      console.log('BD:', user.uuid_phone);
-      console.log('RECIBIDO:', deviceId);
       throw new ForbiddenException(
         'Debes iniciar sesión desde el dispositivo registrado inicialmente.',
       );
