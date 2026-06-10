@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
@@ -34,7 +35,10 @@ export class ClassSessionsService {
     private classDaysService: ClassDaysService,
     private classGroupsService: ClassGroupsService,
     private enrollmentService: EnrollmentService,
-    private attendancesService: AttendancesService,
+
+    @Inject(forwardRef(() => AttendancesService))
+    private readonly attendancesService: AttendancesService,
+
     private readonly dashboardService: DashboardService,
     private readonly attendanceGateway: AttendanceGateway,
 
