@@ -53,7 +53,7 @@ export class ClassDaysService {
     return results;
   }
 
-  async validateDayClassInSession(groupId: string) {
+  async validateDayClassInSession(groupId: string): Promise<string> {
     const now = new Date(
       new Date().toLocaleString('en-US', {
         timeZone: 'America/Bogota',
@@ -82,19 +82,17 @@ export class ClassDaysService {
     };
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
     const start = toMinutes(schedule.start_time);
     const end = toMinutes(schedule.end_time);
 
-    const isInSchedule = currentMinutes >= start && currentMinutes <= end;
-
-    if (!isInSchedule) {
+    if (currentMinutes < start || currentMinutes > end) {
       throw new BadRequestException(
         `Estas fuera del horario de clase: ${schedule.start_time} a ${schedule.end_time}`,
       );
     }
 
-    return true;
+    // ✅ Retornar la hora actual como string para guardar en attendance_opened_at
+    return now.toTimeString().split(' ')[0];
   }
 
   /* async validateDayClassInSession(groupId: string) {

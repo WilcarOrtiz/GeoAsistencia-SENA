@@ -67,14 +67,13 @@ export class ClassSessionsService {
 
     const code_class_session = uuidv4();
 
-    // ✅ Usar create() para tipar correctamente la entidad
     const newSession = this.classSessionRepo.create({
       class_topic,
       classGroup: { id: grupo.id } as ClassGroup,
       teacher: { auth_id: grupo.teacher.auth_id } as Teacher,
       teacher_latitude: latitude,
       teacher_longitude: longitude,
-      attendance_opened_at: attendance_opened_at as unknown as string,
+      attendance_opened_at,
       code_class_session,
     });
 
