@@ -110,7 +110,13 @@ export class AttendancesService {
 
     await this.attendanceRepo.update(attendance.id, {
       status: AttendanceStatus.PRESENT,
-      check_in_time: new Date().toTimeString().split(' ')[0],
+      check_in_time: new Date().toLocaleTimeString('es-CO', {
+        timeZone: 'America/Bogota',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
     });
 
     await this.cache.del(this.sessionDetailKey(session.id));

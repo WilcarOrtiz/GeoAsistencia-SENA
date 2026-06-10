@@ -119,7 +119,13 @@ export class ClassSessionsService {
     const session = await this.classSessionRepo.preload({
       id,
       can_mark_attendance: false,
-      attendance_closed_at: new Date().toTimeString().split(' ')[0],
+      attendance_closed_at: new Date().toLocaleTimeString('es-CO', {
+        timeZone: 'America/Bogota',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
     });
 
     if (!session) {
