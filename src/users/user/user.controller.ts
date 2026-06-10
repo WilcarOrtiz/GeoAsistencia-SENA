@@ -180,6 +180,7 @@ export class UserController {
     @GetUser() user: ICurrentUser,
     @Headers('x-device-id') deviceId?: string,
   ) {
+    console.log('DEVICE ID:', deviceId);
     return await this.userService.getUserProfile(user, deviceId);
   }
 
