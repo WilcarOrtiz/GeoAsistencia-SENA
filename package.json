@@ -25,8 +25,10 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.26",
     "@nestjs/swagger": "^11.2.5",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.26",
     "@supabase/supabase-js": "^2.93.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
@@ -37,6 +39,7 @@
     "pg": "^8.17.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
     "typeorm": "^0.3.28",
     "uuid": "^13.0.0"
   },

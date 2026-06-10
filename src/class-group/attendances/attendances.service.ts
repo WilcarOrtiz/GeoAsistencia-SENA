@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
@@ -13,6 +14,7 @@ import { ClassSessions } from '../class-sessions/entities/class-session.entity';
 import type { ICacheService } from 'src/common/cache/cache.interface';
 import { CACHE_SERVICE, CacheModules } from 'src/common/cache/cache.constants';
 import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
+import { ClassSessionsService } from '../class-sessions/class-sessions.service';
 
 @Injectable()
 export class AttendancesService {
@@ -25,6 +27,9 @@ export class AttendancesService {
 
     @Inject(CACHE_SERVICE)
     private readonly cache: ICacheService,
+
+    @Inject(forwardRef(() => ClassSessionsService))
+    private readonly classSessionsService: ClassSessionsService,
   ) {}
 
   private sessionDetailKey(sessionId: string): string {
@@ -119,7 +124,10 @@ export class AttendancesService {
       }),
     });
 
-    await this.cache.del(this.sessionDetailKey(session.id));
+    // ✅ Notificar al docente en tiempo real via WebSocket
+    // (también invalida el caché de la sesión)
+    await this.classSessionsService.notifyAttendanceMarked(session.id);
+
     return { message: 'Asistencia marcada correctamente' };
   }
 

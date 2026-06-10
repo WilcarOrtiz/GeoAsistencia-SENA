@@ -24,6 +24,7 @@ import { CacheKeyFactory } from 'src/common/cache/cache-key.factory';
 import { DashboardService } from '../../dashboard/dashboard.service';
 import { ClassGroup } from '../class-groups/entities/class-group.entity';
 import { Teacher } from 'src/users/teacher/entities/teacher.entity';
+import { AttendanceGateway } from './attendance.gateway';
 
 @Injectable()
 export class ClassSessionsService {
@@ -35,6 +36,7 @@ export class ClassSessionsService {
     private enrollmentService: EnrollmentService,
     private attendancesService: AttendancesService,
     private readonly dashboardService: DashboardService,
+    private readonly attendanceGateway: AttendanceGateway,
 
     @Inject(CACHE_SERVICE)
     private readonly cache: ICacheService,
@@ -64,8 +66,12 @@ export class ClassSessionsService {
       );
     }
 
+    // ✅ Validar horario y obtener la hora actual
     const attendance_opened_at =
       await this.classDaysService.validateDayClassInSession(grupo.id);
+
+    // ✅ NUEVA VALIDACIÓN: evitar duplicidad de sesión para el mismo día y franja horaria
+    await this.checkNoDuplicateSessionToday(grupo.id, attendance_opened_at);
 
     const code_class_session = uuidv4();
 
@@ -98,6 +104,41 @@ export class ClassSessionsService {
     ]);
 
     return classSession;
+  }
+
+  /**
+   * Verifica que no exista ya una sesión abierta o cerrada para el mismo grupo,
+   * el mismo día calendario y la misma franja horaria (attendance_opened_at).
+   *
+   * Se compara la fecha (DATE de created_at) y la hora de apertura como string
+   * para cubrir el caso de que un docente intente abrir dos sesiones en el mismo
+   * bloque de clase del mismo día.
+   */
+  private async checkNoDuplicateSessionToday(
+    groupId: string,
+    openedAtTime: string,
+  ): Promise<void> {
+    const nowColombia = new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }),
+    );
+    const todayDate = nowColombia.toISOString().split('T')[0];
+
+    const existing = await this.classSessionRepo
+      .createQueryBuilder('cs')
+      .where('cs.class_group_id = :groupId', { groupId })
+      .andWhere("DATE(cs.created_at AT TIME ZONE 'America/Bogota') = :today", {
+        today: todayDate,
+      })
+      .andWhere('cs.attendance_opened_at = :openedAt', {
+        openedAt: openedAtTime,
+      })
+      .getOne();
+
+    if (existing) {
+      throw new BadRequestException(
+        `Ya existe una sesión de asistencia para este grupo hoy en el horario ${openedAtTime}. No se puede crear otra sesión duplicada.`,
+      );
+    }
   }
 
   async findActiveSessionByGroup(groupId: string) {
@@ -227,6 +268,20 @@ export class ClassSessionsService {
     }
 
     return result;
+  }
+
+  /**
+   * Llamado desde AttendancesService cuando un alumno marca asistencia.
+   * Invalida el caché de la sesión y emite el evento WebSocket al docente.
+   */
+  async notifyAttendanceMarked(sessionId: string): Promise<void> {
+    await this.cache.del(this.key('attendances-by-session', { sessionId }));
+
+    const records = await this.findAttendancesBySession(sessionId);
+    this.attendanceGateway.emitAttendanceUpdate(
+      sessionId,
+      records as unknown[],
+    );
   }
 
   async removeSeed(manager: EntityManager): Promise<void> {
