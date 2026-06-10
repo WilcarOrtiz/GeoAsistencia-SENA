@@ -314,6 +314,9 @@ export class UserService {
     }
 
     if (user.uuid_phone !== deviceId) {
+      console.log('DISPOSITIVO INVALIDO');
+      console.log('BD:', user.uuid_phone);
+      console.log('RECIBIDO:', deviceId);
       throw new ForbiddenException(
         'Debes iniciar sesión desde el dispositivo registrado inicialmente.',
       );
