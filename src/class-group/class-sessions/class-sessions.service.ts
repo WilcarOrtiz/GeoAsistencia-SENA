@@ -44,8 +44,10 @@ export class ClassSessionsService {
     return CacheKeyFactory.build(CacheModules.CLASS_SESSIONS, action, params);
   }
 
-  private async invalidateSessionsOfGroup(groupId: string): Promise<void> {
-    await this.cache.del(this.key('sessions-by-group', { groupId }));
+  private async invalidateSessionsOfGroup(): Promise<void> {
+    await this.cache.delByPrefix(
+      `${CacheModules.CLASS_SESSIONS}:sessions-by-group`,
+    );
   }
 
   async createSession(
@@ -91,7 +93,7 @@ export class ClassSessionsService {
     }
 
     await Promise.all([
-      this.invalidateSessionsOfGroup(group_id),
+      this.invalidateSessionsOfGroup(),
       this.classGroupsService.invalidateGroup(group_id),
     ]);
 
@@ -133,7 +135,7 @@ export class ClassSessionsService {
     }
 
     await Promise.all([
-      this.invalidateSessionsOfGroup(session.classGroup?.id ?? ''),
+      this.invalidateSessionsOfGroup(),
       this.dashboardService.invalidateDashboard(),
     ]);
 
